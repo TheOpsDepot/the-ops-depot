@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>The Ops Depot</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --black:#0a0a0a;
+  --white:#fff;
+  --grey:#f5f5f5;
+  --border:#e5e5e5;
+  --text:#111;
+  --subtext:#555;
+  --green:#2d6a2d;
+  --green-bg:#e8f4e8;
+  --amber:#633806;
+  --amber-bg:#faeeda;
+  --red:#791f1f;
+  --red-bg:#fcebeb;
+  --tan:#E8730A;
+  --tan-light:#F09040;
+  --radius:12px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
+}
+html,body{height:100%;background:#111;font-family:var(--font)}
+#app{max-width:390px;margin:0 auto;min-height:100vh;background:#111;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.screen{display:none;flex:1;flex-direction:column;overflow:hidden}
+.screen.active{display:flex}
+
+/* ── STATUS BAR ── */
+.status-bar{font-size:11px;padding:10px 18px 6px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+
+/* ── SHARED INNER HEADER (hero3) ── */
+.inner-header{background:url('images/hero3.png') center/cover no-repeat #1a3a1a;padding:44px 16px 16px;flex-shrink:0;display:flex;align-items:flex-start;justify-content:space-between}
+.back-btn{background:rgba(255,255,255,0.2);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;border-radius:50%;width:42px;height:42px;flex-shrink:0}
+
+/* ── LOGIN ── */
+.login-hero{width:100%;height:260px;background:#1a3a1a url('images/hero4.png') center/cover no-repeat;flex-shrink:0;position:relative}
+.login-status{position:absolute;top:0;left:0;right:0;padding:10px 18px 6px;display:flex;justify-content:space-between;font-size:11px;color:#fff}
+.login-card{background:#fff;border-radius:28px 28px 0 0;flex:1;padding:2rem 1.5rem;display:flex;flex-direction:column;gap:1.2rem;overflow-y:auto;margin-top:-28px;position:relative;width:100%}
+.login-card h2{font-size:26px;font-weight:700;color:#111;letter-spacing:-.3px}
+.login-card p{font-size:15px;color:#444;margin-top:-6px;font-weight:500}
+
+/* ── FIELDS ── */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:14px;color:#333;font-weight:600}
+.field input,.field select,.field textarea{width:100%;padding:15px 16px;font-size:16px;border:1.5px solid #ddd;border-radius:var(--radius);background:#f8f8f8;color:#111;outline:none;font-family:var(--font)}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--tan);background:#fff}
+.field input::placeholder,.field textarea::placeholder{color:#999}
+.field textarea{resize:none;height:90px;line-height:1.5}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:60px}
+.pw-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#555;font-size:14px;font-weight:600;font-family:var(--font);padding:4px}
+.forgot{font-size:14px;color:#555;text-align:right;cursor:pointer}
+.forgot:hover{color:var(--tan)}
+
+/* ── BUTTONS ── */
+.btn{width:100%;padding:16px;border:none;border-radius:var(--radius);font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font)}
+.btn-primary{background:var(--tan);color:#fff}
+.btn-primary:active{opacity:.85}
+.btn-secondary{background:#f0f0f0;color:#111;border:1.5px solid #ddd;font-size:15px}
+
+/* ── INFO BOX ── */
+.info-box{display:flex;gap:10px;background:#f5f5f5;border-radius:var(--radius);padding:14px 16px}
+.info-box p{font-size:13px;color:#555;line-height:1.6}
+.info-box a{color:var(--tan);text-decoration:underline;cursor:pointer;font-weight:600}
+
+/* ── DIVIDER ── */
+.divider{display:flex;align-items:center;gap:10px;color:#999;font-size:13px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#e0e0e0}
+
+/* ── ERROR ── */
+.err{font-size:13px;color:#c0392b;text-align:center;display:none}
+
+/* ── HOME SCREEN ── */
+#screen-home{background:#111;position:relative}
+.home-header{background:url('images/hero3.png') center/cover no-repeat #1a3a1a;padding:40px 14px 14px;flex-shrink:0}
+.search-wrap{padding:0 0 10px}
+.search-inner{display:flex;align-items:center;background:rgba(255,255,255,0.92);border-radius:25px;padding:0 16px;gap:10px}
+.search-inner svg{color:#666;flex-shrink:0;width:18px;height:18px}
+.search-inner input{background:none;border:none;outline:none;color:#111;font-size:16px;padding:13px 0;width:100%;font-family:var(--font)}
+.search-inner input::placeholder{color:#999}
+.cats-wrap{padding:8px 0 4px;flex-shrink:0}
+.cats{display:flex;gap:8px;overflow-x:auto}
+.cats::-webkit-scrollbar{display:none}
+.cat{white-space:nowrap;padding:12px 22px;border-radius:25px;font-size:15px;font-weight:600;cursor:pointer;border:2px solid rgba(255,255,255,0.6);background:rgba(0,0,0,0.4);color:#fff;flex-shrink:0;font-family:var(--font)}
+.cat.active{background:var(--tan);color:#fff;border-color:var(--tan)}
+
+/* ── FEED ── */
+.feed-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px;flex-shrink:0;background:#fff;border-radius:20px 20px 0 0}
+.feed-count{font-size:13px;color:#555;font-weight:500}
+.feed-sort{font-size:13px;color:#555}
+.feed{flex:1;overflow-y:auto;padding:8px 8px 80px;background:url('images/camo.png') center/cover fixed #f0ede8;display:grid;grid-template-columns:repeat(2,1fr);gap:8px;align-content:start}
+.feed::-webkit-scrollbar{display:none}
+
+/* ── LISTING CARD ── */
+.listing-card{border:none;border-radius:12px;overflow:hidden;cursor:pointer;background:#fff;position:relative;display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(0,0,0,0.12)}
+.listing-card:active{opacity:.9}
+.listing-img{width:100%;aspect-ratio:1;background:#f0f0f0;display:flex;align-items:center;justify-content:center;color:#ccc;flex-shrink:0}
+.listing-img svg{width:44px;height:44px;opacity:.35}
+.listing-card-body{padding:10px 10px 12px;display:flex;flex-direction:column;gap:3px;background:#fff}
+.listing-title{font-size:13px;font-weight:600;color:#111;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.listing-price{font-size:16px;font-weight:700;color:#111}
+.listing-badge-row{display:flex;align-items:center;gap:4px;margin-top:3px}
+.save-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.9);border:none;cursor:pointer;color:#111;padding:0;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+.save-btn.saved{color:#c0392b}
+
+/* ── BADGE ── */
+.badge{font-size:11px;padding:3px 8px;border-radius:10px;font-weight:600}
+.badge-new{background:var(--green-bg);color:var(--green)}
+.badge-used-good{background:var(--amber-bg);color:var(--amber)}
+.badge-used-fair{background:var(--red-bg);color:var(--red)}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:#fff;border-top:1px solid #eee;display:flex;padding:10px 0 18px;z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:#aaa;font-size:11px;background:none;border:none;font-family:var(--font);font-weight:500}
+.nav-item.active{color:var(--tan)}
+
+/* ── DETAIL ── */
+.detail-hero{background:#f0f0f0;height:260px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#ccc}
+.detail-body{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:16px;background:#fff}
+.detail-body::-webkit-scrollbar{display:none}
+.detail-title{font-size:22px;font-weight:700;color:#111;line-height:1.3}
+.detail-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+.meta-chip{font-size:13px;color:#555;display:flex;align-items:center;gap:4px}
+.price-row{display:flex;align-items:baseline;gap:8px}
+.price-big{font-size:32px;font-weight:700;color:#111}
+.price-note{font-size:14px;color:#555}
+.section-label{font-size:13px;font-weight:700;color:#333;text-transform:uppercase;letter-spacing:.6px}
+.desc-text{font-size:15px;color:#333;line-height:1.7}
+.seller-card{display:flex;align-items:center;gap:12px;padding:14px;border:1.5px solid var(--border);border-radius:var(--radius)}
+.seller-avatar{width:44px;height:44px;border-radius:50%;background:var(--tan);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0}
+.seller-name{font-size:14px;font-weight:600;color:#111}
+.seller-meta{font-size:12px;color:#555;margin-top:2px}
+.msg-btn{padding:10px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-weight:500;background:#fff;cursor:pointer;font-family:var(--font);white-space:nowrap}
+.courier-list{border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.courier-row{display:flex;align-items:center;padding:13px 14px;border-bottom:1px solid var(--border);gap:12px;cursor:pointer}
+.courier-row:last-child{border-bottom:none}
+.courier-row.selected{background:var(--grey)}
+.courier-radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.courier-radio.on{border-color:var(--tan);background:var(--tan)}
+.courier-radio.on::after{content:'';width:7px;height:7px;border-radius:50%;background:#fff}
+.courier-info{flex:1}
+.courier-name{font-size:14px;font-weight:600;color:#111}
+.courier-eta{font-size:12px;color:#555;margin-top:2px}
+.courier-price{font-size:14px;font-weight:700;color:#111}
+.total-box{display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--grey);border-radius:var(--radius);border:1.5px solid var(--border)}
+.total-label{font-size:14px;color:#555;font-weight:500}
+.total-val{font-size:20px;font-weight:700;color:#111}
+.protect-box{display:flex;gap:10px;padding:13px 14px;background:var(--grey);border-radius:var(--radius);border:1.5px solid var(--border)}
+.protect-box p{font-size:13px;color:#555;line-height:1.5}
+.detail-footer{padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0;background:#fff}
+.heart-btn{padding:0;border:1.5px solid var(--border);border-radius:var(--radius);background:#fff;cursor:pointer;font-size:22px;color:#555;display:flex;align-items:center;justify-content:center;width:52px;height:52px}
+.heart-btn.saved{color:#c0392b;border-color:#c0392b}
+.buy-btn{flex:1;padding:14px;background:var(--tan);color:#fff;border:none;border-radius:var(--radius);font-size:16px;font-weight:600;cursor:pointer;font-family:var(--font)}
+
+/* ── SELL ── */
+.sell-body{flex:1;overflow-y:auto;padding:16px 16px 80px;display:flex;flex-direction:column;gap:14px;background:#fff}
+.sell-body::-webkit-scrollbar{display:none}
+.progress-bar{height:4px;background:#222;flex-shrink:0}
+.progress-fill{height:100%;background:var(--tan);transition:width .3s}
+.step-label{background:var(--black);padding:6px 16px 10px;font-size:12px;color:#888;flex-shrink:0}
+.cond-row{display:flex;gap:8px}
+.cond-btn{flex:1;padding:12px 4px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;text-align:center;cursor:pointer;background:#f8f8f8;color:#555;font-family:var(--font);font-weight:500}
+.cond-btn.active{border-color:var(--tan);background:var(--tan);color:#fff}
+.photo-row{display:flex;gap:8px}
+.photo-slot{width:76px;height:76px;border:2px dashed var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#999;font-size:11px;font-weight:500}
+.breakdown{border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;display:none}
+.breakdown-row{display:flex;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border);font-size:14px}
+.breakdown-row:last-child{border-bottom:none;font-weight:700;font-size:15px}
+.breakdown-label{color:#555}
+.breakdown-val{color:#111}
+.sell-footer{padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0;background:#fff}
+.btn-back-sell{flex:1;padding:14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:15px;background:#fff;color:#111;cursor:pointer;font-family:var(--font);font-weight:500}
+.btn-next-sell{flex:2;padding:14px;background:var(--tan);color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font)}
+
+/* ── CHECKOUT ── */
+.checkout-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;background:#fff}
+.checkout-body::-webkit-scrollbar{display:none}
+.order-summary{border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.order-row{display:flex;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);font-size:14px}
+.order-row:last-child{border-bottom:none;font-weight:700;font-size:15px}
+.order-label{color:#555}
+.card-row{display:flex;gap:8px}
+.stripe-note{display:flex;align-items:center;gap:8px;font-size:13px;color:#555}
+
+/* ── SUCCESS ── */
+.success-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;gap:1.2rem;background:#fff}
+.success-icon{width:80px;height:80px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center}
+.success-title{font-size:22px;font-weight:700;color:#111}
+.success-sub{font-size:15px;color:#555;line-height:1.6}
+
+/* ── ADMIN ── */
+.admin-tabs{display:flex;background:var(--black);padding:0 16px;border-bottom:1px solid #222;flex-shrink:0}
+.admin-tab{flex:1;padding:12px 0;font-size:13px;color:#666;text-align:center;cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--font);font-weight:500;position:relative}
+.admin-tab.active{color:var(--tan-light);border-bottom-color:var(--tan-light)}
+.admin-body{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px;background:#fff}
+.admin-body::-webkit-scrollbar{display:none}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);padding:14px}
+.stat-label{font-size:12px;color:#555;margin-bottom:4px;font-weight:500}
+.stat-val{font-size:26px;font-weight:700;color:#111}
+.stat-sub{font-size:12px;color:#555;margin-top:3px}
+.request-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;flex-direction:column;gap:10px}
+.request-top{display:flex;justify-content:space-between;align-items:flex-start}
+.request-name{font-size:14px;font-weight:600;color:#111}
+.request-time{font-size:12px;color:#555}
+.request-desc{font-size:13px;color:#555;line-height:1.5}
+.request-sia{font-size:12px;color:#555}
+.action-row{display:flex;gap:8px}
+.btn-approve{flex:1;padding:10px;background:var(--tan);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.btn-decline{flex:1;padding:10px;background:#f5f5f5;color:#555;border:1.5px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer;font-family:var(--font)}
+.invite-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:12px}
+.invite-code{font-family:monospace;font-size:20px;font-weight:700;letter-spacing:3px;text-align:center;background:#f5f5f5;padding:14px;border-radius:10px;color:#111}
+.invite-meta{font-size:12px;color:#555;text-align:center}
+.code-list{display:flex;flex-direction:column;gap:8px}
+.code-item{display:flex;justify-content:space-between;align-items:center;padding:11px 13px;background:#f5f5f5;border-radius:10px;border:1.5px solid var(--border)}
+.code-val{font-family:monospace;font-size:13px;color:#111;letter-spacing:1px;font-weight:600}
+.code-status{font-size:12px;color:#555}
+.code-used{color:var(--green)}
+.rev-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:8px}
+.rev-row{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;border-bottom:1px solid var(--border)}
+.rev-row:last-child{border-bottom:none;font-weight:700;font-size:15px}
+.rev-label{color:#555}
+.rev-val{color:#111}
+.tab-dot{position:absolute;top:8px;right:12px;width:7px;height:7px;background:#c0392b;border-radius:50%}
+
+/* ── PROFILE ── */
+.profile-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px;background:#fff}
+.profile-body::-webkit-scrollbar{display:none}
+.profile-hero{display:flex;flex-direction:column;align-items:center;gap:10px;padding:1rem 0}
+.profile-avatar{width:80px;height:80px;border-radius:50%;background:var(--tan);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700}
+.profile-callsign{font-size:20px;font-weight:700;color:#111}
+.profile-meta{font-size:13px;color:#555}
+.profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.profile-stat{background:#f5f5f5;border-radius:var(--radius);padding:14px;text-align:center}
+.profile-stat-val{font-size:22px;font-weight:700;color:#111}
+.profile-stat-label{font-size:12px;color:#555;margin-top:3px;font-weight:500}
+.menu-list{display:flex;flex-direction:column;border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.menu-item{display:flex;align-items:center;justify-content:space-between;padding:16px 16px;background:#fff;border-bottom:1px solid var(--border);cursor:pointer;font-size:15px;color:#111;font-weight:500}
+.menu-item:last-child{border-bottom:none}
+.menu-item:active{background:#f5f5f5}
+
+/* ── EMPTY STATE ── */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:2rem;text-align:center;color:#555;background:#fff}
+.empty-state p{font-size:14px;line-height:1.6}
+
+/* ── REQUEST SCREEN ── */
+.request-screen{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;background:#fff}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══ LOGIN ══ -->
+<div id="screen-login" class="screen active">
+  <div class="login-hero">
+    <div class="login-status"><span>09:41</span><span>●●●</span></div>
+  </div>
+  <div class="login-card">
+    <h2>Sign in</h2>
+    <p>Authorised operatives only</p>
+    <div class="field">
+      <label>Email address</label>
+      <input type="email" id="login-email" placeholder="you@example.com" autocomplete="off"/>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="login-pw" placeholder="••••••••"/>
+        <button class="pw-toggle" onclick="togglePw('login-pw',this)">Show</button>
+      </div>
+    </div>
+    <div class="forgot" onclick="showScreen('screen-forgot')">Forgot password?</div>
+    <div class="err" id="login-err"></div>
+    <button class="btn btn-primary" onclick="handleLogin()" id="login-btn">Sign in</button>
+    <div class="divider">or</div>
+    <button class="btn btn-secondary" onclick="showScreen('screen-register')">Register with invite code</button>
+    <div class="info-box">
+      <p>Not yet a member? <a onclick="showScreen('screen-access-request')">Request access here</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REGISTER ══ -->
+<div id="screen-register" class="screen">
+  <div class="inner-header">
+    <button class="back-btn" onclick="showScreen('screen-login')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+    </button>
+    <span style="color:#fff;font-size:16px;font-weight:600">Create account</span>
+    <div style="width:42px"></div>
+  </div>
+  <div class="login-card" style="border-radius:0;margin-top:0">
+    <h2>Register</h2>
+    <p>Enter your invite code to get started</p>
+    <div class="field"><label>Invite code</label><input type="text" id="reg-code" placeholder="OPS-XXXXX" style="text-transform:uppercase;letter-spacing:2px;font-family:monospace"/></div>
+    <div class="field"><label>Callsign</label><input type="text" id="reg-callsign" placeholder="e.g. ShadowKit" maxlength="20"/></div>
+    <div class="field"><label>Email address</label><input type="email" id="reg-email" placeholder="you@example.com"/></div>
+    <div class="field"><label>Password</label><div class="pw-wrap"><input type="password" id="reg-pw" placeholder="Minimum 8 characters"/><button class="pw-toggle" onclick="togglePw('reg-pw',this)">Show</button></div></div>
+    <div class="err" id="reg-err"></div>
+    <button class="btn btn-primary" onclick="handleRegister()">Create account</button>
+    <div class="info-box"><p>Your callsign is what other members see. Real names and agency names are not permitted.</p></div>
+  </div>
+</div>
+
+<!-- ══ ACCESS REQUEST ══ -->
+<div id="screen-access-request" class="screen">
+  <div class="inner-header">
+    <button class="back-btn" onclick="showScreen('screen-login')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+    </button>
+    <span style="color:#fff;font-size:16px;font-weight:600">Request access</span>
+    <div style="width:42px"></div>
+  </div>
+  <div class="request-screen">
+    <div class="field"><label>Full name</label><input type="text" id="ar-name" placeholder="Your full name"/></div>
+    <div class="field"><label>Email address</label><input type="email" id="ar-email" placeholder="you@example.com"/></div>
+    <div class="field"><label>Freelance or company</label><select id="ar-type"><option value="">Select...</option><option>Freelance operative</option><option>Company employee</option><option>Former military / police</option></select></div>
+    <div class="field"><label>SIA licence number (optional)</label><input type="text" id="ar-sia" placeholder="e.g. 1234567890123456"/></div>
+    <div class="field"><label>Tell us about your background</label><textarea id="ar-desc" placeholder="Brief description of your experience..."></textarea></div>
+    <div class="err" id="ar-err"></div>
+    <button class="btn btn-primary" onclick="handleAccessRequest()">Submit request</button>
+    <div class="info-box"><p>Requests are reviewed manually. You will receive an email within 48 hours.</p></div>
+  </div>
+</div>
+
+<!-- ══ FORGOT PASSWORD ══ -->
+<div id="screen-forgot" class="screen">
+  <div class="inner-header">
+    <button class="back-btn" onclick="showScreen('screen-login')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+    </button>
+    <span style="color:#fff;font-size:16px;font-weight:600">Reset password</span>
+    <div style="width:42px"></div>
+  </div>
+  <div class="login-card" style="border-radius:0;margin-top:0">
+    <h2>Forgot password?</h2>
+    <p>Enter your email and we'll send a reset link</p>
+    <div class="field"><label>Email address</label><input type="email" id="forgot-email" placeholder="you@example.com"/></div>
+    <div class="err" id="forgot-err"></div>
+    <button class="btn btn-primary" onclick="handleForgot()">Send reset link</button>
+  </div>
+</div>
+
+<!-- ══ HOME / BROWSE ══ -->
+<div id="screen-home" class="screen">
+  <div class="home-header">
+    <div class="search-wrap">
+      <div class="search-inner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search listings…" id="search-input" oninput="renderFeed()"/>
+      </div>
+    </div>
+    <div class="cats-wrap"><div class="cats" id="cats-list"></div></div>
+  </div>
+  <div class="feed-header">
+    <span class="feed-count" id="feed-count">Loading...</span>
+    <span class="feed-sort">Newest first</span>
+  </div>
+  <div class="feed" id="feed-list"></div>
+  <div class="bottom-nav">
+    <button class="nav-item active" onclick="showScreen('screen-home')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>Browse</button>
+    <button class="nav-item" onclick="showScreen('screen-saved')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Saved</button>
+    <button class="nav-item" onclick="showScreen('screen-sell')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Sell</button>
+    <button class="nav-item" onclick="showScreen('screen-messages')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</button>
+    <button class="nav-item" onclick="showScreen('screen-profile')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
+  </div>
+</div>
+
+<!-- ══ DETAIL ══ -->
+<div id="screen-detail" class="screen">
+  <div class="inner-header">
+    <button class="back-btn" onclick="showScreen('screen-home')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+    </button>
+    <span style="color:#fff;font-size:16px;font-weight:600">Listing</span>
+    <div style="width:42px"></div>
+  </div>
+  <div class="detail-hero" id="detail-hero">
+    <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+  </div>
+  <div class="detail-body">
+    <div>
+      <div class="detail-title" id="detail-title"></div>
+      <div class="detail-meta" id="detail-meta"></div>
+    </div>
+    <div class="price-row"><span class="price-big" id="detail-price"></span><span class="price-note">+ postage</span></div>
+    <div><div class="section-label" style="margin-bottom:10px">Description</div><div class="desc-text" id="detail-desc"></div></div>
+    <div>
+      <div class="section-label" style="margin-bottom:10px">Seller</div>
+      <div class="seller-card">
+        <div class="seller-avatar" id="detail-seller-avatar"></div>
+        <div style="flex:1"><div class="seller-name" id="detail-seller-name"></div><div class="seller-meta" id="detail-seller-meta"></div></div>
+        <button class="msg-btn">Message</button>
+      </div>
+    </div>
+    <div><div class="section-label" style="margin-bottom:10px">Choose postage</div><div class="courier-list" id="courier-list"></div></div>
+    <div class="total-box"><span class="total-label">Total to pay</span><span class="total-val" id="detail-total">—</span></div>
+    <div class="protect-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;color:#555"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <p>Buyer protection included. Payment held by Stripe until you confirm delivery.</p>
+    </div>
+    <div style="height:80px"></div>
+  </div>
+  <div class="detail-footer">
+    <button class="heart-btn" id="detail-heart" onclick="toggleDetailSave()">♡</button>
+    <button class="buy-btn" onclick="showScreen('screen-checkout')">Buy now — <span id="detail-buy-total"></span></button>
+  </div>
+</div>
+
+<!-- ══ SELL ══ -->
+<div id="screen-sell" class="screen">
+  <div class="inner-header">
+    <button class="back-btn" onclick="showScreen('screen-home')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+    </button>
+    <span style="color:#fff;font-size:16px;font-weight:600">Create listing</span>
+    <div style="width:42px"></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="sell-progress" style="width:33%"></div></div>
+  <div class="step-label" id="sell-step-label">Step 1 of 3 — Item details</div>
+  <div class="sell-body">
+    <div id="sell-step1">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="field"><label>Item title</label><input type="text" id="sell-title" placeholder="e.g. Covert button camera HD 1080p"/></div>
+        <div class="field"><label>Category</label>
+          <select id="sell-cat">
+            <option value="">Select category...</option>
+            <option>Surveillance & Imaging</option>
+            <option>Audio & Listening Devices</option>
+            <option>Tracking & GPS</option>
+            <option>Counter-Surveillance / TSCM</option>
+            <option>Communications & Radio</option>
+            <option>Power, Storage & Cabling</option>
+            <option>Vehicle & Transport</option>
+            <option>Medical & Safety</option>
+            <option>Covert Ops & Field Equipment</option>
+            <option>Support & Accessories</option>
+          </select>
+        </div>
+        <div class="field"><label>Condition</label>
+          <div class="cond-row">
+            <button class="cond-btn active" onclick="setCond(this,'new')">New</button>
+            <button class="cond-btn" onclick="setCond(this,'used-good')">Used — good</button>
+            <button class="cond-btn" onclick="setCond(this,'used-fair')">Used — fair</button>
+          </div>
+        </div>
+        <div class="field"><label>Description</label><textarea id="sell-desc" placeholder="Describe the item — model, age, condition, accessories, any faults..."></textarea></div>
+        <div class="field"><label>Photos (up to 6)</label>
+          <div class="photo-row">
+            <div class="photo-slot" onclick="fakePhoto(this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Add</span></div>
+            <div class="photo-slot" onclick="fakePhoto(this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Add</span></div>
+            <div class="photo-slot" onclick="fakePhoto(this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Add</span></div>
+            <div class="photo-slot" onclick="fakePhoto(this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Add</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="sell-step2" style="display:none;flex-direction:column;gap:14px">
+      <div class="field"><label>Asking price (£)</label><input type="number" id="sell-price" placeholder="0.00" min="0" oninput="calcBreakdown()"/></div>
+      <div class="breakdown" id="sell-breakdown">
+        <div class="breakdown-row"><span class="breakdown-label">Your asking price</span><span class="breakdown-val" id="bd-price">—</span></div>
+        <div class="breakdown-row"><span class="breakdown-label">Platform commission (5%)</span><span class="breakdown-val" id="bd-comm">—</span></div>
+        <div class="breakdown-row"><span class="breakdown-label">Stripe processing fee</span><span class="breakdown-val" id="bd-stripe">—</span></div>
+        <div class="breakdown-row"><span class="breakdown-label">You receive</span><span class="breakdown-val" id="bd-receive">—</span></div>
+      </div>
+      <div class="field"><label>Parcel weight (kg)</label><input type="number" id="sell-weight" placeholder="e.g. 0.5" min="0" step="0.1"/></div>
+      <div style="display:flex;gap:8px">
+        <div class="field" style="flex:1"><label>Length (cm)</label><input type="number" placeholder="cm"/></div>
+        <div class="field" style="flex:1"><label>Width (cm)</label><input type="number" placeholder="cm"/></div>
+        <div class="field" style="flex:1"><label>Height (cm)</label><input type="number" placeholder="cm"/></div>
+      </div>
+      <div class="field"><label>Your postcode</label><input type="text" id="sell-postcode" placeholder="e.g. BN1 1AA"/></div>
+      <div class="info-box"><p>Weight and dimensions generate accurate courier quotes for buyers. The Ops Depot charges <strong>5% commission</strong> on completed sales.</p></div>
+    </div>
+    <div id="sell-step3" style="display:none;flex-direction:column;gap:14px">
+      <div class="field"><label>Account holder name</label><input type="text" placeholder="Full name on account"/></div>
+      <div class="field"><label>Sort code</label><input type="text" placeholder="00-00-00" maxlength="8"/></div>
+      <div class="field"><label>Account number</label><input type="text" placeholder="12345678" maxlength="8"/></div>
+      <div class="info-box"><p>Bank details held securely by <strong>Stripe</strong>. Payouts within 2 working days of a completed sale.</p></div>
+      <div class="field"><label>Listing visibility</label><select><option>Visible to all members immediately</option><option>Save as draft</option></select></div>
+    </div>
+  </div>
+  <div class="sell-footer">
+    <button class="btn-back-sell" id="sell-back-btn" onclick="sellPrev()">Back</button>
+    <button class="btn-next-sell" id="sell-next-btn" onclick="sellNext()">Next — pricing</button>
+  </div>
+</div>
+
+<!-- ══ CHECKOUT ══ -->
+<div id="screen-checkout" class="screen">
+  <div class="inner-header">
+    <button class="back-btn" onclick="showScreen('screen-detail')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+    </button>
+    <span style="color:#fff;font-size:16px;font-weight:600">Secure checkout</span>
+    <div style="width:42px"></div>
+  </div>
+  <div class="checkout-body">
+    <div class="section-label">Order summary</div>
+    <div class="order-summary">
+      <div class="order-row"><span class="order-label" id="co-item">Item</span><span id="co-item-price">—</span></div>
+      <div class="order-row"><span class="order-label" id="co-courier-label">Postage</span><span id="co-postage">—</span></div>
+      <div class="order-row"><span class="order-label">Buyer protection</span><span style="color:var(--green);font-weight:600">Included</span></div>
+      <div class="order-row"><span class="order-label">Total</span><span id="co-total">—</span></div>
+    </div>
+    <div class="section-label">Delivery address</div>
+    <div class="field"><label>Full name</label><input type="text" placeholder="Your name"/></div>
+    <div class="field"><label>Address line 1</label><input type="text" placeholder="Street address"/></div>
+    <div class="field"><label>Town / city</label><input type="text" placeholder="Town or city"/></div>
+    <div class="field"><label>Postcode</label><input type="text" placeholder="e.g. BN1 1AA"/></div>
+    <div class="section-label">Payment</div>
+    <div class="field"><label>Card number</label><input type="text" placeholder="•••• •••• •••• ••••" maxlength="19"/></div>
+    <div class="card-row">
+      <div class="field" style="flex:1"><label>Expiry</label><input type="text" placeholder="MM/YY" maxlength="5"/></div>
+      <div class="field" style="flex:1"><label>CVC</label><input type="text" placeholder="•••" maxlength="3"/></div>
+    </div>
+    <div class="stripe-note">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Secured by Stripe. Card details never stored on The Ops Depot.
+    </div>
+    <button class="btn btn-primary" onclick="handleCheckout()">Pay <span id="pay-total">—</span> securely</button>
+    <div style="height:20px"></div>
+  </div>
+</div>
+
+<!-- ══ ORDER SUCCESS ══ -->
+<div id="screen-order-success" class="screen">
+  <div class="inner-header">
+    <div style="width:42px"></div>
+    <span style="color:#fff;font-size:16px;font-weight:600">The Ops Depot</span>
+    <div style="width:42px"></div>
+  </div>
+  <div class="success-screen">
+    <div class="success-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2d6a2d" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg></div>
+    <div class="success-title">Order confirmed</div>
+    <div class="success-sub">Payment held securely by Stripe. The seller has 48 hours to dispatch. You'll receive tracking details by email once shipped.</div>
+    <button class="btn btn-primary" style="margin-top:1rem" onclick="showScreen('screen-home')">Back to browse</button>
+  </div>
+</div>
+
+<!-- ══ LISTING SUCCESS ══ -->
+<div id="screen-listing-success" class="screen">
+  <div class="inner-header">
+    <div style="width:42px"></div>
+    <span style="color:#fff;font-size:16px;font-weight:600">The Ops Depot</span>
+    <div style="width:42px"></div>
+  </div>
+  <div class="success-screen">
+    <div class="success-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2d6a2d" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg></div>
+    <div class="success-title">Listing posted</div>
+    <div class="success-sub">Your item is now live to all members. You'll be notified when someone buys or messages you.</div>
+    <button class="btn btn-primary" style="margin-top:1rem" onclick="showScreen('screen-home')">Back to browse</button>
+  </div>
+</div>
+
+<!-- ══ SAVED ══ -->
+<div id="screen-saved" class="screen">
+  <div class="inner-header">
+    <div style="width:42px"></div>
+    <span style="color:#fff;font-size:16px;font-weight:600">Saved listings</span>
+    <div style="width:42px"></div>
+  </div>
+  <div class="feed" id="saved-feed" style="padding-top:10px;border-radius:0"></div>
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="showScreen('screen-home')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>Browse</button>
+    <button class="nav-item active" onclick="showScreen('screen-saved')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Saved</button>
+    <button class="nav-item" onclick="showScreen('screen-sell')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Sell</button>
+    <button class="nav-item" onclick="showScreen('screen-messages')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</button>
+    <button class="nav-item" onclick="showScreen('screen-profile')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
+  </div>
+</div>
+
+<!-- ══ MESSAGES ══ -->
+<div id="screen-messages" class="screen">
+  <div class="inner-header">
+    <div style="width:42px"></div>
+    <span style="color:#fff;font-size:16px;font-weight:600">Messages</span>
+    <div style="width:42px"></div>
+  </div>
+  <div class="empty-state">
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <p>No messages yet. Conversations with buyers and sellers will appear here.</p>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="showScreen('screen-home')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>Browse</button>
+    <button class="nav-item" onclick="showScreen('screen-saved')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Saved</button>
+    <button class="nav-item" onclick="showScreen('screen-sell')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Sell</button>
+    <button class="nav-item active" onclick="showScreen('screen-messages')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</button>
+    <button class="nav-item" onclick="showScreen('screen-profile')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
+  </div>
+</div>
+
+<!-- ══ PROFILE ══ -->
+<div id="screen-profile" class="screen">
+  <div class="inner-header">
+    <div style="width:42px"></div>
+    <span style="color:#fff;font-size:16px;font-weight:600">Profile</span>
+    <button class="back-btn" onclick="handleLogout()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
+  </div>
+  <div class="profile-body">
+    <div class="profile-hero">
+      <div class="profile-avatar" id="profile-avatar">JT</div>
+      <div class="profile-callsign" id="profile-callsign">TacGearLDN</div>
+      <div class="profile-meta">Member since 2025 · Verified operative</div>
+    </div>
+    <div class="profile-stats">
+      <div class="profile-stat"><div class="profile-stat-val">3</div><div class="profile-stat-label">Sold</div></div>
+      <div class="profile-stat"><div class="profile-stat-val">2</div><div class="profile-stat-label">Bought</div></div>
+      <div class="profile-stat"><div class="profile-stat-val">4</div><div class="profile-stat-label">Saved</div></div>
+    </div>
+    <div class="section-label">My account</div>
+    <div class="menu-list">
+      <div class="menu-item">My listings <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
+      <div class="menu-item">Purchase history <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
+      <div class="menu-item">Payout settings <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
+      <div class="menu-item">Change password <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
+      <div class="menu-item" onclick="showScreen('screen-admin')">Admin panel <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="showScreen('screen-home')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>Browse</button>
+    <button class="nav-item" onclick="showScreen('screen-saved')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Saved</button>
+    <button class="nav-item" onclick="showScreen('screen-sell')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Sell</button>
+    <button class="nav-item" onclick="showScreen('screen-messages')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</button>
+    <button class="nav-item active" onclick="showScreen('screen-profile')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
+  </div>
+</div>
+
+<!-- ══ ADMIN ══ -->
+<div id="screen-admin" class="screen">
+  <div class="inner-header">
+    <button class="back-btn" onclick="showScreen('screen-profile')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+    </button>
+    <span style="color:#fff;font-size:16px;font-weight:600">Admin — Depot HQ</span>
+    <div style="width:42px"></div>
+  </div>
+  <div class="admin-tabs">
+    <button class="admin-tab active" onclick="adminTab(this,'admin-overview')">Overview</button>
+    <button class="admin-tab" onclick="adminTab(this,'admin-requests')">Requests<span class="tab-dot"></span></button>
+    <button class="admin-tab" onclick="adminTab(this,'admin-listings')">Listings</button>
+    <button class="admin-tab" onclick="adminTab(this,'admin-invites')">Invites</button>
+  </div>
+  <div class="admin-body" id="admin-overview">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">Total members</div><div class="stat-val">47</div><div class="stat-sub">+3 this week</div></div>
+      <div class="stat-card"><div class="stat-label">Active listings</div><div class="stat-val">23</div><div class="stat-sub">2 flagged</div></div>
+      <div class="stat-card"><div class="stat-label">Sales this month</div><div class="stat-val">11</div><div class="stat-sub">£4,320 GMV</div></div>
+      <div class="stat-card"><div class="stat-label">Your commission</div><div class="stat-val">£216</div><div class="stat-sub">5% of GMV</div></div>
+    </div>
+    <div class="section-label">Revenue this month</div>
+    <div class="rev-card">
+      <div class="rev-row"><span class="rev-label">Gross sales value</span><span class="rev-val">£4,320</span></div>
+      <div class="rev-row"><span class="rev-label">Commission at 5%</span><span class="rev-val">£216.00</span></div>
+      <div class="rev-row"><span class="rev-label">Stripe fees (est.)</span><span class="rev-val">-£64.00</span></div>
+      <div class="rev-row"><span class="rev-label">Net to you</span><span class="rev-val">£152.00</span></div>
+    </div>
+  </div>
+  <div class="admin-body" id="admin-requests" style="display:none">
+    <div class="section-label">Pending (3)</div>
+    <div class="request-card" id="req1"><div class="request-top"><span class="request-name">M. Hargreaves</span><span class="request-time">12 min ago</span></div><div class="request-desc">Freelance CP operative, 8 years on the circuit. London based.</div><div class="request-sia">SIA licence: provided (verified)</div><div class="action-row"><button class="btn-approve" onclick="approveReq('req1')">Approve</button><button class="btn-decline" onclick="declineReq('req1')">Decline</button></div></div>
+    <div class="request-card" id="req2"><div class="request-top"><span class="request-name">S. Okafor</span><span class="request-time">2 hr ago</span></div><div class="request-desc">Surveillance contractor, Midlands. Kit to sell from recent contract.</div><div class="request-sia">SIA licence: provided (pending check)</div><div class="action-row"><button class="btn-approve" onclick="approveReq('req2')">Approve</button><button class="btn-decline" onclick="declineReq('req2')">Decline</button></div></div>
+    <div class="request-card" id="req3"><div class="request-top"><span class="request-name">T. Brennan</span><span class="request-time">Yesterday</span></div><div class="request-desc">Close protection, 12 years. Former military.</div><div class="request-sia">SIA licence: not provided</div><div class="action-row"><button class="btn-approve" onclick="approveReq('req3')">Approve</button><button class="btn-decline" onclick="declineReq('req3')">Decline</button></div></div>
+    <div id="no-requests" style="display:none;text-align:center;padding:2rem;font-size:14px;color:#555">All requests reviewed</div>
+  </div>
+  <div class="admin-body" id="admin-listings" style="display:none">
+    <div class="section-label">Flagged (2)</div>
+    <div class="request-card"><div class="request-top"><span class="request-name">RF jammer — handheld</span><span style="font-size:12px;color:#c0392b;font-weight:600">Restricted item</span></div><div class="request-desc">Posted by TacNorth</div><div class="action-row"><button class="btn-approve">View</button><button class="btn-decline" style="color:#c0392b;border-color:#f09595">Remove</button></div></div>
+    <div class="request-card"><div class="request-top"><span class="request-name">Covert camera — no serial</span><span style="font-size:12px;color:#c0392b;font-weight:600">No serial number</span></div><div class="request-desc">Posted by GhostKit</div><div class="action-row"><button class="btn-approve">View</button><button class="btn-decline" style="color:#c0392b;border-color:#f09595">Remove</button></div></div>
+  </div>
+  <div class="admin-body" id="admin-invites" style="display:none">
+    <div class="section-label">Generate invite code</div>
+    <div class="invite-card">
+      <div class="invite-code" id="invite-display">— — — — —</div>
+      <div class="invite-meta">Single use · expires 7 days after generation</div>
+      <button class="btn btn-primary" onclick="generateInvite()">Generate new code</button>
+    </div>
+    <div class="section-label">Recent codes</div>
+    <div class="code-list">
+      <div class="code-item"><span class="code-val">OPS-4X9K2</span><span class="code-status code-used">Used — M. Clarke</span></div>
+      <div class="code-item"><span class="code-val">OPS-7RN81</span><span class="code-status code-used">Used — D. Patel</span></div>
+      <div class="code-item"><span class="code-val">OPS-2QT56</span><span class="code-status">Unused · expires 30 Aug</span></div>
+      <div class="code-item" id="new-invite-item" style="display:none"><span class="code-val" id="new-invite-val"></span><span class="code-status">Unused · expires 7 days</span></div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const SUPABASE_URL='https://pxbddzaqhejrgxrudesv.supabase.co'
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4YmRkemFxaGVqcmd4cnVkZXN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxODg4MjgsImV4cCI6MjA5ODc2NDgyOH0.zBWxEwHqNlYEETBQ3aTxaSftJtZ7zNQtohxgEhrQicE'
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
+
+var state={user:null,listings:[],saved:{},activeCat:'All',activeListing:null,selectedCourier:null,sellStep:1,sellCond:'new'}
+
+var CATEGORIES=['All','Surveillance & Imaging','Audio & Listening Devices','Tracking & GPS','Counter-Surveillance / TSCM','Communications & Radio','Power, Storage & Cabling','Vehicle & Transport','Medical & Safety','Covert Ops & Field Equipment','Support & Accessories']
+
+var DEMO_LISTINGS=[
+  {id:1,title:'Covert button camera — HD 1080p',cat:'Surveillance & Imaging',loc:'London',price:280,cond:'new',age:'2 min ago',callsign:'ShadowKit',desc:'Fully functional covert button camera, 1080p at 30fps. Used on two assignments. All original accessories included. No footage retained.'},
+  {id:2,title:'GPS asset tracker — magnetic, 30-day battery',cat:'Tracking & GPS',loc:'Manchester',price:145,cond:'new',age:'14 min ago',callsign:'TacGearLDN',desc:'Brand new, unused. Magnetic mount, 30-day standby, real-time tracking via app. 60x40x15mm.'},
+  {id:3,title:'Covert earpiece kit — acoustic tube x2',cat:'Communications & Radio',loc:'Birmingham',price:95,cond:'used-good',age:'1 hr ago',callsign:'OpticaLDN',desc:'Two-piece acoustic tube earpiece set. Kenwood two-pin compatible. Fully operational.'},
+  {id:4,title:'RF signal detector — 1MHz-8GHz',cat:'Counter-Surveillance / TSCM',loc:'Bristol',price:390,cond:'new',age:'2 hr ago',callsign:'GhostKit',desc:'Brand new RF detector. Wide frequency range. Ideal for sweep operations.'},
+  {id:5,title:'Covert ops backpack — Maxpedition Fattboy',cat:'Covert Ops & Field Equipment',loc:'Leeds',price:75,cond:'used-good',age:'3 hr ago',callsign:'NorthOps',desc:'Well-maintained covert backpack. Multiple compartments, low-profile design.'},
+  {id:6,title:'Portable power bank — 26800mAh',cat:'Power, Storage & Cabling',loc:'Edinburgh',price:65,cond:'new',age:'5 hr ago',callsign:'ShadowKit',desc:'Brand new high capacity power bank. Ideal for extended operations.'},
+  {id:7,title:'Vehicle tracker — hardwired, 4G, live ping',cat:'Vehicle & Transport',loc:'Glasgow',price:185,cond:'used-good',age:'7 hr ago',callsign:'TacGearLDN',desc:'Hardwired 4G tracker, live location updates every 10 seconds.'},
+  {id:8,title:'Body worn audio recorder — 32GB',cat:'Audio & Listening Devices',loc:'Cardiff',price:160,cond:'new',age:'Yesterday',callsign:'OpticaLDN',desc:'Discreet body worn recorder. 32GB storage, 20 hour battery life.'}
+]
+
+var COURIERS=[]
+
+async function getShippingRates(listing){
+  try{
+    var res=await fetch('https://pxbddzaqhejrgxrudesv.supabase.co/functions/v1/get-shipping-rates',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4YmRkemFxaGVqcmd4cnVkZXN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxODg4MjgsImV4cCI6MjA5ODc2NDgyOH0.zBWxEwHqNlYEETBQ3aTxaSftJtZ7zNQtohxgEhrQicE'
+      },
+      body:JSON.stringify({
+        weight_kg:listing.weight_kg||0.5,
+        length_cm:listing.length_cm||20,
+        width_cm:listing.width_cm||15,
+        height_cm:listing.height_cm||10,
+        from_postcode:listing.postcode||'SW1A 1AA'
+      })
+    })
+    var data=await res.json()
+    if(data.rates&&data.rates.length>0){
+      return data.rates.map(function(r){
+        return {
+          name:r.carrier+' — '+r.service,
+          price:parseFloat(r.price),
+          eta:r.days?r.days+' working days':'Estimated'
+        }
+      })
+    }
+  }catch(e){
+    console.error('Shipping rates error:',e)
+  }
+  return [
+    {name:'Royal Mail Tracked 48',price:3.95,eta:'2-3 working days'},
+    {name:'DPD Next Day',price:7.50,eta:'Next working day'},
+    {name:'DHL Express',price:12.00,eta:'Same / next day'}
+  ]
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'))
+  document.getElementById(id).classList.add('active')
+  if(id==='screen-home')renderFeed()
+  if(id==='screen-saved')renderSaved()
+}
+
+async function handleLogin(){
+  var email=document.getElementById('login-email').value.trim()
+  var pw=document.getElementById('login-pw').value
+  var btn=document.getElementById('login-btn')
+  document.getElementById('login-err').style.display='none'
+  if(!email||!pw){showErr('login-err','Please enter your email and password.');return}
+  btn.textContent='Signing in...'
+  btn.disabled=true
+  try{
+    var {data,error}=await sb.auth.signInWithPassword({email,password:pw})
+    if(error)throw error
+    state.user=data.user
+    state.listings=DEMO_LISTINGS
+    showScreen('screen-home')
+  }catch(e){showErr('login-err','Incorrect email or password.')}
+  btn.textContent='Sign in'
+  btn.disabled=false
+}
+
+async function handleRegister(){
+  var code=document.getElementById('reg-code').value.trim().toUpperCase()
+  var callsign=document.getElementById('reg-callsign').value.trim()
+  var email=document.getElementById('reg-email').value.trim()
+  var pw=document.getElementById('reg-pw').value
+  if(!code||!callsign||!email||!pw){showErr('reg-err','Please fill in all fields.');return}
+  if(pw.length<8){showErr('reg-err','Password must be at least 8 characters.');return}
+  try{
+    var {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{callsign}}})
+    if(error)throw error
+    showScreen('screen-home')
+  }catch(e){showErr('reg-err',e.message||'Registration failed.')}
+}
+
+async function handleAccessRequest(){
+  var name=document.getElementById('ar-name').value.trim()
+  var email=document.getElementById('ar-email').value.trim()
+  var type=document.getElementById('ar-type').value
+  var sia=document.getElementById('ar-sia').value.trim()
+  var desc=document.getElementById('ar-desc').value.trim()
+  if(!name||!email||!type||!desc){showErr('ar-err','Please fill in all required fields.');return}
+  try{
+    var {error}=await sb.from('access_requests').insert({full_name:name,email,company_or_freelance:type,sia_licence:sia,description:desc,status:'pending'})
+    if(error)throw error
+    showScreen('screen-login')
+    alert('Request submitted. You will hear from us within 48 hours.')
+  }catch(e){showErr('ar-err','Submission failed. Please try again.')}
+}
+
+async function handleForgot(){
+  var email=document.getElementById('forgot-email').value.trim()
+  if(!email){showErr('forgot-err','Please enter your email address.');return}
+  try{
+    await sb.auth.resetPasswordForEmail(email)
+    alert('Reset link sent. Check your email.')
+    showScreen('screen-login')
+  }catch(e){showErr('forgot-err','Could not send reset email.')}
+}
+
+async function handleLogout(){
+  await sb.auth.signOut()
+  state.user=null
+  showScreen('screen-login')
+}
+
+function renderFeed(){
+  var q=(document.getElementById('search-input')||{}).value||''
+  q=q.toLowerCase()
+  var cats=document.getElementById('cats-list')
+  if(cats&&!cats.children.length){
+    CATEGORIES.forEach(function(c){
+      var el=document.createElement('button')
+      el.className='cat'+(c===state.activeCat?' active':'')
+      el.textContent=c
+      el.onclick=function(){state.activeCat=c;document.querySelectorAll('.cat').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderFeed()}
+      cats.appendChild(el)
+    })
+  }
+  var filtered=state.listings.filter(function(l){
+    var catOk=state.activeCat==='All'||l.cat===state.activeCat
+    var qOk=!q||l.title.toLowerCase().includes(q)||l.cat.toLowerCase().includes(q)||l.loc.toLowerCase().includes(q)
+    return catOk&&qOk
+  })
+  document.getElementById('feed-count').textContent=filtered.length+' listing'+(filtered.length!==1?'s':'')
+  var feed=document.getElementById('feed-list')
+  feed.innerHTML=filtered.map(function(l){
+    var safeId=String(l.id).replace(/[^a-zA-Z0-9-_]/g,'')
+    return '<div class="listing-card" onclick="openListing(\''+safeId+'\')">'+
+      '<div class="listing-img">'+iconFor(l.cat)+'</div>'+
+      '<button class="save-btn'+(state.saved[l.id]?' saved':'')+'" onclick="event.stopPropagation();toggleSave(\''+safeId+'\')">'+(state.saved[l.id]?'♥':'♡')+'</button>'+
+      '<div class="listing-card-body">'+
+        '<div class="listing-title">'+l.title+'</div>'+
+        '<div class="listing-price">£'+l.price+'</div>'+
+        '<div class="listing-badge-row"><span class="badge '+condClass(l.cond)+'">'+condLabel(l.cond)+'</span></div>'+
+      '</div>'+
+    '</div>'
+  }).join('')
+}
+
+function renderSaved(){
+  var feed=document.getElementById('saved-feed')
+  var savedItems=state.listings.filter(function(l){return state.saved[l.id]})
+  if(!savedItems.length){
+    feed.innerHTML='<div class="empty-state"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><p>No saved listings yet. Tap the heart on any listing to save it.</p></div>'
+    return
+  }
+  feed.innerHTML=savedItems.map(function(l){
+    return '<div class="listing-card" onclick="openListing('+l.id+')">'+
+      '<div class="listing-img">'+iconFor(l.cat)+'</div>'+
+      '<div class="listing-card-body"><div class="listing-title">'+l.title+'</div><div class="listing-price">£'+l.price+'</div></div>'+
+    '</div>'
+  }).join('')
+}
+
+function toggleSave(id){state.saved[id]=!state.saved[id];renderFeed()}
+
+function openListing(id){
+  var l=state.listings.find(function(x){return String(x.id)===String(id)})
+  if(!l)return
+  state.activeListing=l
+  state.selectedCourier=null
+  document.getElementById('detail-title').textContent=l.title
+  document.getElementById('detail-price').textContent='£'+l.price
+  document.getElementById('detail-desc').textContent=l.desc
+  document.getElementById('detail-seller-avatar').textContent=l.callsign.substring(0,2).toUpperCase()
+  document.getElementById('detail-seller-name').textContent=l.callsign
+  document.getElementById('detail-seller-meta').textContent='Verified operative · 3 sales'
+  document.getElementById('detail-meta').innerHTML=
+    '<span class="meta-chip">📍 '+l.loc+'</span>'+
+    '<span class="meta-chip">🕐 '+l.age+'</span>'+
+    '<span class="badge '+condClass(l.cond)+'" style="margin-left:4px">'+condLabel(l.cond)+'</span>'
+  document.getElementById('courier-list').innerHTML='<div style="padding:14px;color:#555;font-size:14px">Loading courier rates...</div>'
+  showScreen('screen-detail')
+  getShippingRates(l).then(function(rates){
+    COURIERS=rates
+    state.selectedCourier=rates[0]
+    renderCouriers()
+  })
+}
+
+function renderCouriers(){
+  document.getElementById('courier-list').innerHTML=COURIERS.map(function(c,i){
+    var sel=state.selectedCourier&&state.selectedCourier.name===c.name
+    return '<div class="courier-row'+(sel?' selected':'')+'" onclick="selectCourier('+i+')">'+
+      '<div class="courier-radio'+(sel?' on':'')+'"></div>'+
+      '<div class="courier-info"><div class="courier-name">'+c.name+'</div><div class="courier-eta">'+c.eta+'</div></div>'+
+      '<div class="courier-price">£'+c.price.toFixed(2)+'</div>'+
+    '</div>'
+  }).join('')
+  updateDetailTotal()
+}
+
+function selectCourier(i){state.selectedCourier=COURIERS[i];renderCouriers()}
+
+function updateDetailTotal(){
+  if(!state.activeListing||!state.selectedCourier)return
+  var total=(state.activeListing.price+state.selectedCourier.price).toFixed(2)
+  document.getElementById('detail-total').textContent='£'+total
+  document.getElementById('detail-buy-total').textContent='£'+total
+  document.getElementById('co-item').textContent=state.activeListing.title
+  document.getElementById('co-item-price').textContent='£'+state.activeListing.price
+  document.getElementById('co-courier-label').textContent=state.selectedCourier.name
+  document.getElementById('co-postage').textContent='£'+state.selectedCourier.price.toFixed(2)
+  document.getElementById('co-total').textContent='£'+total
+  document.getElementById('pay-total').textContent='£'+total
+}
+
+function toggleDetailSave(){
+  if(!state.activeListing)return
+  var id=state.activeListing.id
+  state.saved[id]=!state.saved[id]
+  var btn=document.getElementById('detail-heart')
+  btn.classList.toggle('saved',state.saved[id])
+  btn.textContent=state.saved[id]?'♥':'♡'
+}
+
+function handleCheckout(){showScreen('screen-order-success')}
+
+function setCond(el,val){
+  state.sellCond=val
+  document.querySelectorAll('.cond-btn').forEach(function(b){b.classList.remove('active')})
+  el.classList.add('active')
+}
+
+function fakePhoto(el){
+  el.innerHTML='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg><span>Added</span>'
+  el.style.borderStyle='solid'
+}
+
+function calcBreakdown(){
+  var price=parseFloat(document.getElementById('sell-price').value)
+  var bd=document.getElementById('sell-breakdown')
+  if(!price||price<=0){bd.style.display='none';return}
+  bd.style.display='flex';bd.style.flexDirection='column'
+  var comm=price*0.05,stripe=price*0.014+0.20,receive=price-comm-stripe
+  document.getElementById('bd-price').textContent='£'+price.toFixed(2)
+  document.getElementById('bd-comm').textContent='-£'+comm.toFixed(2)
+  document.getElementById('bd-stripe').textContent='-£'+stripe.toFixed(2)
+  document.getElementById('bd-receive').textContent='£'+Math.max(0,receive).toFixed(2)
+}
+
+async function sellNext(){
+  if(state.sellStep===3){
+    var btn=document.getElementById('sell-next-btn')
+    btn.textContent='Posting...'
+    btn.disabled=true
+    try{
+      var {error}=await sb.from('listings').insert({
+        seller_id:state.user.id,
+        callsign:state.user.user_metadata?.callsign||'Anonymous',
+        title:document.getElementById('sell-title').value,
+        category:document.getElementById('sell-cat').value,
+        condition:state.sellCond,
+        description:document.getElementById('sell-desc').value,
+        price:parseFloat(document.getElementById('sell-price').value),
+        weight_kg:parseFloat(document.getElementById('sell-weight').value)||null,
+        postcode:document.getElementById('sell-postcode').value,
+        status:'active'
+      })
+      if(error)throw error
+      showScreen('screen-listing-success')
+      state.sellStep=1
+      updateSellStep()
+    }catch(e){
+      alert('Failed to post listing. Please try again.')
+    }
+    btn.textContent='Post listing'
+    btn.disabled=false
+    return
+  }
+  state.sellStep++;updateSellStep()
+}
+function sellPrev(){if(state.sellStep===1)return;state.sellStep--;updateSellStep()}
+function updateSellStep(){
+  var s=state.sellStep
+  document.getElementById('sell-step1').style.display=s===1?'block':'none'
+  document.getElementById('sell-step2').style.display=s===2?'flex':'none'
+  document.getElementById('sell-step3').style.display=s===3?'flex':'none'
+  document.getElementById('sell-progress').style.width=(s/3*100)+'%'
+  var labels=['Step 1 of 3 — Item details','Step 2 of 3 — Pricing & postage','Step 3 of 3 — Payout & publish']
+  document.getElementById('sell-step-label').textContent=labels[s-1]
+  var nextLabels=['Next — pricing','Next — payout details','Post listing']
+  document.getElementById('sell-next-btn').textContent=nextLabels[s-1]
+  document.getElementById('sell-back-btn').style.opacity=s===1?'0.3':'1'
+  document.getElementById('sell-back-btn').disabled=s===1
+  if(s===2)calcBreakdown()
+}
+
+function adminTab(el,panelId){
+  document.querySelectorAll('.admin-tab').forEach(function(t){t.classList.remove('active')})
+  document.querySelectorAll('.admin-body').forEach(function(b){b.style.display='none'})
+  el.classList.add('active')
+  document.getElementById(panelId).style.display='flex'
+  document.getElementById(panelId).style.flexDirection='column'
+}
+
+function approveReq(id){
+  var el=document.getElementById(id)
+  el.querySelector('.btn-approve').textContent='Approved'
+  el.querySelector('.btn-approve').style.background='#2d6a2d'
+  el.style.opacity='.5';el.style.pointerEvents='none'
+  setTimeout(function(){el.remove();checkReqsEmpty()},1000)
+}
+function declineReq(id){
+  var el=document.getElementById(id);el.style.opacity='.3'
+  setTimeout(function(){el.remove();checkReqsEmpty()},500)
+}
+function checkReqsEmpty(){
+  if(!document.querySelectorAll('#admin-requests .request-card').length){
+    document.getElementById('no-requests').style.display='block'
+    var dot=document.querySelector('.tab-dot');if(dot)dot.style.display='none'
+  }
+}
+
+function generateInvite(){
+  var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',code='OPS-'
+  for(var i=0;i<5;i++)code+=chars[Math.floor(Math.random()*chars.length)]
+  document.getElementById('invite-display').textContent=code
+  document.getElementById('new-invite-val').textContent=code
+  document.getElementById('new-invite-item').style.display='flex'
+}
+
+function showErr(id,msg){var el=document.getElementById(id);el.textContent=msg;el.style.display='block'}
+function togglePw(inputId,btn){var inp=document.getElementById(inputId);inp.type=inp.type==='password'?'text':'password';btn.textContent=inp.type==='password'?'Show':'Hide'}
+function condLabel(c){return c==='new'?'New':c==='used-good'?'Used — good':'Used — fair'}
+function condClass(c){return c==='new'?'badge-new':c==='used-good'?'badge-used-good':'badge-used-fair'}
+function iconFor(cat){
+  var icons={
+    'Surveillance & Imaging':'<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>',
+    'Tracking & GPS':'<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+    'Communications & Radio':'<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>',
+    'Counter-Surveillance / TSCM':'<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    'Audio & Listening Devices':'<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19 11,5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>',
+    'Power, Storage & Cabling':'<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>',
+    'Vehicle & Transport':'<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="15" height="13"/><polygon points="16,8 20,8 23,11 23,16 16,16 16,8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
+    'Medical & Safety':'<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
+    'Covert Ops & Field Equipment':'<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+    'Support & Accessories':'<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>'
+  }
+  return icons[cat]||'<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>'
+}
+
+async function loadListings(){
+  try{
+    var {data,error}=await sb.from('listings').select('*').eq('status','active').order('created_at',{ascending:false})
+    if(error)throw error
+    if(data&&data.length>0){
+      state.listings=data.map(function(l){
+        return {
+          id:l.id,
+          title:l.title,
+          cat:l.category,
+          loc:l.postcode||'UK',
+          price:l.price,
+          cond:l.condition||'new',
+          age:timeAgo(l.created_at),
+          callsign:l.callsign||'Member',
+          desc:l.description||'',
+          weight_kg:l.weight_kg,
+          length_cm:l.length_cm,
+          width_cm:l.width_cm,
+          height_cm:l.height_cm,
+          postcode:l.postcode
+        }
+      })
+    } else {
+      state.listings=DEMO_LISTINGS
+    }
+  }catch(e){
+    state.listings=DEMO_LISTINGS
+  }
+  renderFeed()
+}
+
+function timeAgo(dateStr){
+  var diff=Math.floor((new Date()-new Date(dateStr))/1000)
+  if(diff<60)return 'Just now'
+  if(diff<3600)return Math.floor(diff/60)+' min ago'
+  if(diff<86400)return Math.floor(diff/3600)+' hr ago'
+  return Math.floor(diff/86400)+' days ago'
+}
+
+async function init(){
+  var {data:{session}}=await sb.auth.getSession()
+  if(session){
+    state.user=session.user
+    showScreen('screen-home')
+    loadListings()
+  }
+}
+init()
+</script>
+</body>
+</html>
