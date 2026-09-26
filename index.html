@@ -237,6 +237,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
 .profile-hero{display:flex;flex-direction:column;align-items:center;gap:10px;padding:1rem 0}
 .profile-avatar{width:80px;height:80px;border-radius:50%;background:var(--tan);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700}
 .profile-callsign{font-size:20px;font-weight:700;color:#111}
+.profile-location{font-size:13px;color:#777;margin-top:-6px}
 .profile-meta{font-size:13px;color:#555}
 .profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .profile-stat{background:#f5f5f5;border-radius:var(--radius);padding:14px;text-align:center}
@@ -326,11 +327,13 @@ html,body{height:100%;background:#111;font-family:var(--font)}
     <p>Enter your invite code to get started</p>
     <div class="field"><label>Invite code</label><input type="text" id="reg-code" placeholder="OPS-XXXXX" style="text-transform:uppercase;letter-spacing:2px;font-family:monospace"/></div>
     <div class="field"><label>Callsign</label><input type="text" id="reg-callsign" placeholder="e.g. ShadowKit" maxlength="20"/></div>
+    <div class="field"><label>Address line 1</label><input type="text" id="reg-address1" placeholder="Street address"/></div>
+    <div class="field"><label>Postcode</label><input type="text" id="reg-postcode" placeholder="e.g. BN1 1AA" style="text-transform:uppercase"/></div>
     <div class="field"><label>Email address</label><input type="email" id="reg-email" placeholder="you@example.com"/></div>
     <div class="field"><label>Password</label><div class="pw-wrap"><input type="password" id="reg-pw" placeholder="Minimum 8 characters"/><button class="pw-toggle" onclick="togglePw('reg-pw',this)">Show</button></div></div>
     <div class="err" id="reg-err"></div>
     <button class="btn btn-primary" onclick="handleRegister()">Create account</button>
-    <div class="info-box"><p>Your callsign is what other members see. Real names and agency names are not permitted.</p></div>
+    <div class="info-box"><p>Your callsign is what other members see. Real names and agency names are not permitted. Your address is required so accurate courier prices can be shown — it's kept private, and only your nearest city is ever shown publicly.</p></div>
   </div>
 </div>
 
@@ -497,8 +500,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
         <div class="field" style="flex:1"><label>Width (cm)</label><input type="number" placeholder="cm"/></div>
         <div class="field" style="flex:1"><label>Height (cm)</label><input type="number" placeholder="cm"/></div>
       </div>
-      <div class="field"><label>Your postcode</label><input type="text" id="sell-postcode" placeholder="e.g. BN1 1AA"/></div>
-      <div class="info-box"><p>Weight and dimensions generate accurate courier quotes for buyers. The Ops Depot charges <strong>5% commission</strong> on completed sales.</p></div>
+      <div class="info-box"><p>Weight and dimensions generate accurate courier quotes for buyers, calculated from your registered address. The Ops Depot charges <strong>5% commission</strong> on completed sales.</p></div>
     </div>
     <div id="sell-step3" style="display:none;flex-direction:column;gap:14px">
       <div class="field"><label>Account holder name</label><input type="text" placeholder="Full name on account"/></div>
@@ -532,10 +534,10 @@ html,body{height:100%;background:#111;font-family:var(--font)}
       <div class="order-row"><span class="order-label">Total</span><span id="co-total">—</span></div>
     </div>
     <div class="section-label">Delivery address</div>
-    <div class="field"><label>Full name</label><input type="text" placeholder="Your name"/></div>
-    <div class="field"><label>Address line 1</label><input type="text" placeholder="Street address"/></div>
-    <div class="field"><label>Town / city</label><input type="text" placeholder="Town or city"/></div>
-    <div class="field"><label>Postcode</label><input type="text" placeholder="e.g. BN1 1AA"/></div>
+    <div class="field"><label>Full name</label><input type="text" id="co-name" placeholder="Your name"/></div>
+    <div class="field"><label>Address line 1</label><input type="text" id="co-address1" placeholder="Street address"/></div>
+    <div class="field"><label>Town / city</label><input type="text" id="co-city" placeholder="Town or city"/></div>
+    <div class="field"><label>Postcode</label><input type="text" id="co-postcode" placeholder="e.g. BN1 1AA"/></div>
     <div class="section-label">Payment</div>
     <div class="field"><label>Card number</label><input type="text" placeholder="•••• •••• •••• ••••" maxlength="19"/></div>
     <div class="card-row">
@@ -656,8 +658,9 @@ html,body{height:100%;background:#111;font-family:var(--font)}
   </div>
   <div class="profile-body">
     <div class="profile-hero">
-      <div class="profile-avatar" id="profile-avatar">JT</div>
-      <div class="profile-callsign" id="profile-callsign">TacGearLDN</div>
+      <div class="profile-avatar" id="profile-avatar">—</div>
+      <div class="profile-callsign" id="profile-callsign">—</div>
+      <div class="profile-location" id="profile-location"></div>
       <div class="profile-meta">Member since 2025 · Verified operative</div>
     </div>
     <div class="profile-stats">
@@ -748,7 +751,7 @@ const SUPABASE_URL='https://pxbddzaqhejrgxrudesv.supabase.co'
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4YmRkemFxaGVqcmd4cnVkZXN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxODg4MjgsImV4cCI6MjA5ODc2NDgyOH0.zBWxEwHqNlYEETBQ3aTxaSftJtZ7zNQtohxgEhrQicE'
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
 
-var state={user:null,listings:[],saved:{},activeCat:'All',activeListing:null,selectedCourier:null,sellStep:1,sellCond:'new',sellPhotos:[],conversations:[],activeConversation:null}
+var state={user:null,profile:null,listings:[],saved:{},activeCat:'All',activeListing:null,selectedCourier:null,sellStep:1,sellCond:'new',sellPhotos:[],conversations:[],activeConversation:null}
 var MAX_PHOTOS=6
 var chatChannel=null
 
@@ -776,11 +779,8 @@ async function getShippingRates(listing){
         'Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4YmRkemFxaGVqcmd4cnVkZXN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxODg4MjgsImV4cCI6MjA5ODc2NDgyOH0.zBWxEwHqNlYEETBQ3aTxaSftJtZ7zNQtohxgEhrQicE'
       },
       body:JSON.stringify({
-        weight_kg:listing.weight_kg||0.5,
-        length_cm:listing.length_cm||20,
-        width_cm:listing.width_cm||15,
-        height_cm:listing.height_cm||10,
-        from_postcode:listing.postcode||'SW1A 1AA'
+        listing_id:listing.id,
+        to_postcode:(state.profile&&state.profile.postcode)||null
       })
     })
     var data=await res.json()
@@ -810,7 +810,26 @@ function showScreen(id){
   if(id==='screen-saved')renderSaved()
   if(id==='screen-my-listings')loadMyListings()
   if(id==='screen-messages')loadConversations()
+  if(id==='screen-profile')renderProfileHeader()
+  if(id==='screen-checkout')prefillCheckoutAddress()
   if(id!=='screen-chat'&&chatChannel){sb.removeChannel(chatChannel);chatChannel=null}
+}
+
+function renderProfileHeader(){
+  var callsign=(state.user&&state.user.user_metadata&&state.user.user_metadata.callsign)||'Member'
+  document.getElementById('profile-avatar').textContent=callsign.substring(0,2).toUpperCase()
+  document.getElementById('profile-callsign').textContent=callsign
+  document.getElementById('profile-location').textContent=(state.profile&&state.profile.city)?state.profile.city+', UK':''
+}
+
+function prefillCheckoutAddress(){
+  var p=state.profile||{}
+  var addr1El=document.getElementById('co-address1')
+  var cityEl=document.getElementById('co-city')
+  var pcEl=document.getElementById('co-postcode')
+  if(addr1El&&!addr1El.value)addr1El.value=p.address_line1||''
+  if(cityEl&&!cityEl.value)cityEl.value=p.city||''
+  if(pcEl&&!pcEl.value)pcEl.value=p.postcode||''
 }
 
 function escapeHtml(s){
@@ -829,6 +848,7 @@ async function handleLogin(){
     var {data,error}=await sb.auth.signInWithPassword({email,password:pw})
     if(error)throw error
     state.user=data.user
+    await syncProfile()
     showScreen('screen-home')
     loadListings()
   }catch(e){showErr('login-err','Incorrect email or password.')}
@@ -839,15 +859,20 @@ async function handleLogin(){
 async function handleRegister(){
   var code=document.getElementById('reg-code').value.trim().toUpperCase()
   var callsign=document.getElementById('reg-callsign').value.trim()
+  var address1=document.getElementById('reg-address1').value.trim()
+  var postcode=document.getElementById('reg-postcode').value.trim().toUpperCase()
   var email=document.getElementById('reg-email').value.trim()
   var pw=document.getElementById('reg-pw').value
-  if(!code||!callsign||!email||!pw){showErr('reg-err','Please fill in all fields.');return}
+  if(!code||!callsign||!address1||!postcode||!email||!pw){showErr('reg-err','Please fill in all fields.');return}
   if(pw.length<8){showErr('reg-err','Password must be at least 8 characters.');return}
+  var city=await lookupCity(postcode)
+  if(!city){showErr('reg-err','Please enter a valid UK postcode.');return}
   try{
-    var {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{callsign}}})
+    var {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{callsign,address_line1:address1,postcode,city}}})
     if(error)throw error
     if(data.session){
       state.user=data.user
+      await syncProfile()
       showScreen('screen-home')
       loadListings()
     }else{
@@ -855,6 +880,42 @@ async function handleRegister(){
       alert('Account created. Please check your email to confirm, then sign in.')
     }
   }catch(e){showErr('reg-err',e.message||'Registration failed.')}
+}
+
+async function lookupCity(postcode){
+  try{
+    var res=await fetch('https://api.postcodes.io/postcodes/'+encodeURIComponent(postcode.replace(/\s+/g,'')))
+    var json=await res.json()
+    if(json.status===200&&json.result){
+      return json.result.admin_district||json.result.parish||json.result.region||null
+    }
+  }catch(e){}
+  return null
+}
+
+// Ensures a private profiles row exists for the signed-in user (created
+// from the signup metadata if this is their first successful login —
+// covers accounts that needed email confirmation before a session existed),
+// then loads it into state.profile for use around the app (checkout
+// prefill, etc). The real address never lives anywhere but this table.
+async function syncProfile(){
+  if(!state.user){state.profile=null;return}
+  try{
+    var {data,error}=await sb.from('profiles').select('*').eq('id',state.user.id).maybeSingle()
+    if(error)throw error
+    if(data){state.profile=data;return}
+    var meta=state.user.user_metadata||{}
+    if(!meta.postcode)return
+    var insertRes=await sb.from('profiles').insert({
+      id:state.user.id,
+      callsign:meta.callsign||'',
+      address_line1:meta.address_line1||'',
+      postcode:meta.postcode||'',
+      city:meta.city||'',
+      country:'GB'
+    }).select().single()
+    state.profile=insertRes.data||null
+  }catch(e){console.error('syncProfile error:',e);state.profile=null}
 }
 
 async function handleAccessRequest(){
@@ -1101,7 +1162,7 @@ async function sellNext(){
         description:document.getElementById('sell-desc').value,
         price:parseFloat(document.getElementById('sell-price').value),
         weight_kg:parseFloat(document.getElementById('sell-weight').value)||null,
-        postcode:document.getElementById('sell-postcode').value,
+        city:(state.profile&&state.profile.city)||'',
         photos:state.sellPhotos.filter(function(p){return p.url}).map(function(p){return p.url}),
         status:'active'
       })
@@ -1202,7 +1263,7 @@ async function loadListings(){
           seller_id:l.seller_id,
           title:l.title,
           cat:l.category,
-          loc:l.postcode||'UK',
+          loc:l.city||'UK',
           price:l.price,
           cond:l.condition||'new',
           age:timeAgo(l.created_at),
@@ -1212,7 +1273,6 @@ async function loadListings(){
           length_cm:l.length_cm,
           width_cm:l.width_cm,
           height_cm:l.height_cm,
-          postcode:l.postcode,
           photos:l.photos||[]
         }
       })
