@@ -33,12 +33,12 @@ html,body{height:100%;background:#111;font-family:var(--font)}
 /* ── STATUS BAR ── */
 .status-bar{font-size:11px;padding:10px 18px 6px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
 
-/* ── SHARED INNER HEADER (hero-grey-plain) ── */
-.inner-header{background:url('images/hero-grey-plain.png') center/cover no-repeat #1a3a1a;padding:44px 16px 16px;flex-shrink:0;display:flex;align-items:flex-start;justify-content:space-between}
+/* ── SHARED INNER HEADER (hero3) ── */
+.inner-header{background:url('images/hero3.png') center/cover no-repeat #1a3a1a;padding:44px 16px 16px;flex-shrink:0;display:flex;align-items:flex-start;justify-content:space-between}
 .back-btn{background:rgba(255,255,255,0.2);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;border-radius:50%;width:42px;height:42px;flex-shrink:0}
 
 /* ── LOGIN ── */
-.login-hero{width:100%;height:260px;background:#1a3a1a url('images/hero-grey.png') center/cover no-repeat;flex-shrink:0;position:relative}
+.login-hero{width:100%;height:260px;background:#1a3a1a url('images/hero4.png') center/cover no-repeat;flex-shrink:0;position:relative}
 .login-status{position:absolute;top:0;left:0;right:0;padding:10px 18px 6px;display:flex;justify-content:space-between;font-size:11px;color:#fff}
 .login-card{background:#fff;border-radius:28px 28px 0 0;flex:1;padding:2rem 1.5rem;display:flex;flex-direction:column;gap:1.2rem;overflow-y:auto;margin-top:-28px;position:relative;width:100%}
 .login-card h2{font-size:26px;font-weight:700;color:#111;letter-spacing:-.3px}
@@ -77,7 +77,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
 
 /* ── HOME SCREEN ── */
 #screen-home{background:#111;position:relative}
-.home-header{background:url('images/hero-grey.png') center/cover no-repeat #1a3a1a;padding:40px 14px 14px;flex-shrink:0}
+.home-header{background:url('images/hero3.png') center/cover no-repeat #1a3a1a;padding:40px 14px 14px;flex-shrink:0}
 .search-wrap{padding:0 0 10px}
 .search-inner{display:flex;align-items:center;background:rgba(255,255,255,0.92);border-radius:25px;padding:0 16px;gap:10px}
 .search-inner svg{color:#666;flex-shrink:0;width:18px;height:18px}
@@ -166,8 +166,11 @@ html,body{height:100%;background:#111;font-family:var(--font)}
 .cond-row{display:flex;gap:8px}
 .cond-btn{flex:1;padding:12px 4px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;text-align:center;cursor:pointer;background:#f8f8f8;color:#555;font-family:var(--font);font-weight:500}
 .cond-btn.active{border-color:var(--tan);background:var(--tan);color:#fff}
-.photo-row{display:flex;gap:8px}
-.photo-slot{width:76px;height:76px;border:2px dashed var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#999;font-size:11px;font-weight:500}
+.photo-row{display:flex;gap:8px;overflow-x:auto}
+.photo-row::-webkit-scrollbar{display:none}
+.photo-slot{width:76px;height:76px;border:2px dashed var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#999;font-size:11px;font-weight:500;flex-shrink:0;position:relative}
+.photo-slot.photo-filled{border-style:solid;background-size:cover;background-position:center}
+.photo-remove{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#111;color:#fff;border:none;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
 .breakdown{border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;display:none}
 .breakdown-row{display:flex;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border);font-size:14px}
 .breakdown-row:last-child{border-bottom:none;font-weight:700;font-size:15px}
@@ -250,6 +253,30 @@ html,body{height:100%;background:#111;font-family:var(--font)}
 
 /* ── REQUEST SCREEN ── */
 .request-screen{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;background:#fff}
+
+/* ── CONVERSATIONS ── */
+.conv-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer}
+.conv-row:active{background:#f8f8f8}
+.conv-avatar{width:44px;height:44px;border-radius:50%;background:var(--tan);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;flex-shrink:0}
+.conv-info{flex:1;min-width:0}
+.conv-top{display:flex;justify-content:space-between;gap:8px}
+.conv-name{font-size:14px;font-weight:600;color:#111}
+.conv-time{font-size:11px;color:#999;flex-shrink:0}
+.conv-listing{font-size:12px;color:#999;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv-preview{font-size:13px;color:#555;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv-unread{width:9px;height:9px;border-radius:50%;background:var(--tan);flex-shrink:0}
+
+/* ── CHAT ── */
+.chat-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#f5f5f5}
+.chat-body::-webkit-scrollbar{display:none}
+.chat-bubble{max-width:78%;padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.4;word-wrap:break-word}
+.chat-bubble.mine{align-self:flex-end;background:var(--tan);color:#fff;border-bottom-right-radius:4px}
+.chat-bubble.theirs{align-self:flex-start;background:#fff;color:#111;border:1px solid var(--border);border-bottom-left-radius:4px}
+.chat-time{font-size:10px;opacity:.7;margin-top:4px;display:block}
+.chat-input-row{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);background:#fff;flex-shrink:0}
+.chat-input-row input{flex:1;padding:12px 14px;border:1.5px solid #ddd;border-radius:22px;font-size:15px;outline:none;font-family:var(--font)}
+.chat-input-row input:focus{border-color:var(--tan)}
+.chat-send{width:44px;height:44px;border-radius:50%;background:var(--tan);color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -395,7 +422,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
       <div class="seller-card">
         <div class="seller-avatar" id="detail-seller-avatar"></div>
         <div style="flex:1"><div class="seller-name" id="detail-seller-name"></div><div class="seller-meta" id="detail-seller-meta"></div></div>
-        <button class="msg-btn">Message</button>
+        <button class="msg-btn" id="detail-msg-btn" onclick="handleMessageSeller()">Message</button>
       </div>
     </div>
     <div><div class="section-label" style="margin-bottom:10px">Choose postage</div><div class="courier-list" id="courier-list"></div></div>
@@ -451,12 +478,8 @@ html,body{height:100%;background:#111;font-family:var(--font)}
         </div>
         <div class="field"><label>Description</label><textarea id="sell-desc" placeholder="Describe the item — model, age, condition, accessories, any faults..."></textarea></div>
         <div class="field"><label>Photos (up to 6)</label>
-          <div class="photo-row">
-            <div class="photo-slot" onclick="fakePhoto(this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Add</span></div>
-            <div class="photo-slot" onclick="fakePhoto(this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Add</span></div>
-            <div class="photo-slot" onclick="fakePhoto(this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Add</span></div>
-            <div class="photo-slot" onclick="fakePhoto(this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Add</span></div>
-          </div>
+          <input type="file" id="photo-file-input" accept="image/*" style="display:none" onchange="handlePhotoFile(event)"/>
+          <div class="photo-row" id="photo-row"></div>
         </div>
       </div>
     </div>
@@ -582,10 +605,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
     <span style="color:#fff;font-size:16px;font-weight:600">Messages</span>
     <div style="width:42px"></div>
   </div>
-  <div class="empty-state">
-    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-    <p>No messages yet. Conversations with buyers and sellers will appear here.</p>
-  </div>
+  <div id="conversations-list" style="flex:1;overflow-y:auto"></div>
   <div class="bottom-nav">
     <button class="nav-item" onclick="showScreen('screen-home')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>Browse</button>
     <button class="nav-item" onclick="showScreen('screen-saved')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Saved</button>
@@ -593,6 +613,36 @@ html,body{height:100%;background:#111;font-family:var(--font)}
     <button class="nav-item active" onclick="showScreen('screen-messages')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</button>
     <button class="nav-item" onclick="showScreen('screen-profile')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
   </div>
+</div>
+
+<!-- ══ CHAT ══ -->
+<div id="screen-chat" class="screen">
+  <div class="inner-header">
+    <button class="back-btn" onclick="showScreen('screen-messages')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+    </button>
+    <span style="color:#fff;font-size:16px;font-weight:600" id="chat-title">Chat</span>
+    <div style="width:42px"></div>
+  </div>
+  <div class="chat-body" id="chat-body"></div>
+  <div class="chat-input-row">
+    <input type="text" id="chat-input" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendChatMessage()"/>
+    <button class="chat-send" onclick="sendChatMessage()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ══ MY LISTINGS ══ -->
+<div id="screen-my-listings" class="screen">
+  <div class="inner-header">
+    <button class="back-btn" onclick="showScreen('screen-profile')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+    </button>
+    <span style="color:#fff;font-size:16px;font-weight:600">My listings</span>
+    <div style="width:42px"></div>
+  </div>
+  <div class="profile-body" id="my-listings-list"></div>
 </div>
 
 <!-- ══ PROFILE ══ -->
@@ -617,7 +667,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
     </div>
     <div class="section-label">My account</div>
     <div class="menu-list">
-      <div class="menu-item">My listings <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
+      <div class="menu-item" onclick="showScreen('screen-my-listings')">My listings <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
       <div class="menu-item">Purchase history <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
       <div class="menu-item">Payout settings <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
       <div class="menu-item">Change password <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
@@ -698,7 +748,9 @@ const SUPABASE_URL='https://pxbddzaqhejrgxrudesv.supabase.co'
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4YmRkemFxaGVqcmd4cnVkZXN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxODg4MjgsImV4cCI6MjA5ODc2NDgyOH0.zBWxEwHqNlYEETBQ3aTxaSftJtZ7zNQtohxgEhrQicE'
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
 
-var state={user:null,listings:[],saved:{},activeCat:'All',activeListing:null,selectedCourier:null,sellStep:1,sellCond:'new'}
+var state={user:null,listings:[],saved:{},activeCat:'All',activeListing:null,selectedCourier:null,sellStep:1,sellCond:'new',sellPhotos:[],conversations:[],activeConversation:null}
+var MAX_PHOTOS=6
+var chatChannel=null
 
 var CATEGORIES=['All','Surveillance & Imaging','Audio & Listening Devices','Tracking & GPS','Counter-Surveillance / TSCM','Communications & Radio','Power, Storage & Cabling','Vehicle & Transport','Medical & Safety','Covert Ops & Field Equipment','Support & Accessories']
 
@@ -756,6 +808,13 @@ function showScreen(id){
   document.getElementById(id).classList.add('active')
   if(id==='screen-home')renderFeed()
   if(id==='screen-saved')renderSaved()
+  if(id==='screen-my-listings')loadMyListings()
+  if(id==='screen-messages')loadConversations()
+  if(id!=='screen-chat'&&chatChannel){sb.removeChannel(chatChannel);chatChannel=null}
+}
+
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})
 }
 
 async function handleLogin(){
@@ -770,8 +829,8 @@ async function handleLogin(){
     var {data,error}=await sb.auth.signInWithPassword({email,password:pw})
     if(error)throw error
     state.user=data.user
-    state.listings=DEMO_LISTINGS
     showScreen('screen-home')
+    loadListings()
   }catch(e){showErr('login-err','Incorrect email or password.')}
   btn.textContent='Sign in'
   btn.disabled=false
@@ -787,7 +846,14 @@ async function handleRegister(){
   try{
     var {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{callsign}}})
     if(error)throw error
-    showScreen('screen-home')
+    if(data.session){
+      state.user=data.user
+      showScreen('screen-home')
+      loadListings()
+    }else{
+      showScreen('screen-login')
+      alert('Account created. Please check your email to confirm, then sign in.')
+    }
   }catch(e){showErr('reg-err',e.message||'Registration failed.')}
 }
 
@@ -844,8 +910,9 @@ function renderFeed(){
   var feed=document.getElementById('feed-list')
   feed.innerHTML=filtered.map(function(l){
     var safeId=String(l.id).replace(/[^a-zA-Z0-9-_]/g,'')
+    var photo=firstPhoto(l)
     return '<div class="listing-card" onclick="openListing(\''+safeId+'\')">'+
-      '<div class="listing-img">'+iconFor(l.cat)+'</div>'+
+      '<div class="listing-img"'+(photo?' style="background:url(\''+photo+'\') center/cover"':'')+'>'+(photo?'':iconFor(l.cat))+'</div>'+
       '<button class="save-btn'+(state.saved[l.id]?' saved':'')+'" onclick="event.stopPropagation();toggleSave(\''+safeId+'\')">'+(state.saved[l.id]?'♥':'♡')+'</button>'+
       '<div class="listing-card-body">'+
         '<div class="listing-title">'+l.title+'</div>'+
@@ -864,11 +931,16 @@ function renderSaved(){
     return
   }
   feed.innerHTML=savedItems.map(function(l){
-    return '<div class="listing-card" onclick="openListing('+l.id+')">'+
-      '<div class="listing-img">'+iconFor(l.cat)+'</div>'+
+    var photo=firstPhoto(l)
+    return '<div class="listing-card" onclick="openListing(\''+l.id+'\')">'+
+      '<div class="listing-img"'+(photo?' style="background:url(\''+photo+'\') center/cover"':'')+'>'+(photo?'':iconFor(l.cat))+'</div>'+
       '<div class="listing-card-body"><div class="listing-title">'+l.title+'</div><div class="listing-price">£'+l.price+'</div></div>'+
     '</div>'
   }).join('')
+}
+
+function firstPhoto(l){
+  return (l.photos&&l.photos.length)?l.photos[0]:null
 }
 
 function toggleSave(id){state.saved[id]=!state.saved[id];renderFeed()}
@@ -884,6 +956,17 @@ function openListing(id){
   document.getElementById('detail-seller-avatar').textContent=l.callsign.substring(0,2).toUpperCase()
   document.getElementById('detail-seller-name').textContent=l.callsign
   document.getElementById('detail-seller-meta').textContent='Verified operative · 3 sales'
+  var hero=document.getElementById('detail-hero')
+  var heroPhoto=firstPhoto(l)
+  if(heroPhoto){
+    hero.style.background="url('"+heroPhoto+"') center/cover"
+    hero.innerHTML=''
+  }else{
+    hero.style.background='#f0f0f0'
+    hero.innerHTML='<svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>'
+  }
+  var msgBtn=document.getElementById('detail-msg-btn')
+  msgBtn.style.display=(state.user&&l.seller_id&&l.seller_id===state.user.id)?'none':'flex'
   document.getElementById('detail-meta').innerHTML=
     '<span class="meta-chip">📍 '+l.loc+'</span>'+
     '<span class="meta-chip">🕐 '+l.age+'</span>'+
@@ -941,9 +1024,54 @@ function setCond(el,val){
   el.classList.add('active')
 }
 
-function fakePhoto(el){
-  el.innerHTML='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg><span>Added</span>'
-  el.style.borderStyle='solid'
+function renderPhotoSlots(){
+  var row=document.getElementById('photo-row')
+  if(!row)return
+  var html=''
+  state.sellPhotos.forEach(function(p,i){
+    if(p.uploading){
+      html+='<div class="photo-slot" style="color:#999"><span style="font-size:11px">Uploading…</span></div>'
+    }else{
+      html+='<div class="photo-slot photo-filled" style="background-image:url(\''+p.url+'\')"><button type="button" class="photo-remove" onclick="event.stopPropagation();removePhoto('+i+')">×</button></div>'
+    }
+  })
+  if(state.sellPhotos.length<MAX_PHOTOS){
+    html+='<div class="photo-slot" onclick="triggerPhotoUpload()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Add</span></div>'
+  }
+  row.innerHTML=html
+}
+
+function triggerPhotoUpload(){
+  if(state.sellPhotos.length>=MAX_PHOTOS)return
+  document.getElementById('photo-file-input').click()
+}
+
+async function handlePhotoFile(e){
+  var file=e.target.files[0]
+  e.target.value=''
+  if(!file)return
+  if(!state.user){alert('Please sign in again.');return}
+  if(state.sellPhotos.length>=MAX_PHOTOS)return
+  var slotIndex=state.sellPhotos.length
+  state.sellPhotos.push({uploading:true})
+  renderPhotoSlots()
+  try{
+    var ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg'
+    var path=state.user.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext
+    var {error:upErr}=await sb.storage.from('listing-photos').upload(path,file,{cacheControl:'3600',upsert:false})
+    if(upErr)throw upErr
+    var {data:pub}=sb.storage.from('listing-photos').getPublicUrl(path)
+    state.sellPhotos[slotIndex]={url:pub.publicUrl,path:path}
+  }catch(err){
+    state.sellPhotos.splice(slotIndex,1)
+    alert('Photo upload failed. Please try again.')
+  }
+  renderPhotoSlots()
+}
+
+function removePhoto(i){
+  state.sellPhotos.splice(i,1)
+  renderPhotoSlots()
 }
 
 function calcBreakdown(){
@@ -974,12 +1102,16 @@ async function sellNext(){
         price:parseFloat(document.getElementById('sell-price').value),
         weight_kg:parseFloat(document.getElementById('sell-weight').value)||null,
         postcode:document.getElementById('sell-postcode').value,
+        photos:state.sellPhotos.filter(function(p){return p.url}).map(function(p){return p.url}),
         status:'active'
       })
       if(error)throw error
       showScreen('screen-listing-success')
       state.sellStep=1
+      state.sellPhotos=[]
+      renderPhotoSlots()
       updateSellStep()
+      loadListings()
     }catch(e){
       alert('Failed to post listing. Please try again.')
     }
@@ -1067,6 +1199,7 @@ async function loadListings(){
       state.listings=data.map(function(l){
         return {
           id:l.id,
+          seller_id:l.seller_id,
           title:l.title,
           cat:l.category,
           loc:l.postcode||'UK',
@@ -1079,7 +1212,8 @@ async function loadListings(){
           length_cm:l.length_cm,
           width_cm:l.width_cm,
           height_cm:l.height_cm,
-          postcode:l.postcode
+          postcode:l.postcode,
+          photos:l.photos||[]
         }
       })
     } else {
@@ -1099,7 +1233,212 @@ function timeAgo(dateStr){
   return Math.floor(diff/86400)+' days ago'
 }
 
+/* ── MY LISTINGS ── */
+async function loadMyListings(){
+  var wrap=document.getElementById('my-listings-list')
+  if(!state.user){wrap.innerHTML='';return}
+  wrap.innerHTML='<div style="padding:2rem;text-align:center;color:#555;font-size:14px">Loading…</div>'
+  try{
+    var {data,error}=await sb.from('listings').select('*').eq('seller_id',state.user.id).order('created_at',{ascending:false})
+    if(error)throw error
+    renderMyListings(data||[])
+  }catch(e){
+    wrap.innerHTML='<div class="empty-state"><p>Could not load your listings. Please try again.</p></div>'
+  }
+}
+
+function renderMyListings(rows){
+  var wrap=document.getElementById('my-listings-list')
+  if(!rows.length){
+    wrap.innerHTML='<div class="empty-state"><p>You haven\'t listed anything yet. Tap Sell to create your first listing.</p></div>'
+    return
+  }
+  wrap.innerHTML=rows.map(function(l){
+    var photo=(l.photos&&l.photos.length)?l.photos[0]:null
+    var sold=l.status==='sold'
+    var thumbStyle='width:56px;height:56px;flex-shrink:0;border-radius:8px'+(photo?";background:url('"+photo+"') center/cover":'')
+    return '<div class="request-card">'+
+      '<div style="display:flex;gap:12px;align-items:center">'+
+        '<div class="listing-img" style="'+thumbStyle+'">'+(photo?'':iconFor(l.category))+'</div>'+
+        '<div style="flex:1;min-width:0"><div class="request-name">'+escapeHtml(l.title)+'</div><div class="request-desc">£'+l.price+' · '+(sold?'Sold':'Active')+'</div></div>'+
+      '</div>'+
+      '<div class="action-row">'+
+        (sold?'<button class="btn-approve" disabled style="opacity:.5">Sold</button>':'<button class="btn-approve" onclick="markListingSold(\''+l.id+'\')">Mark as sold</button>')+
+        '<button class="btn-decline" style="color:#c0392b;border-color:#f09595" onclick="deleteMyListing(\''+l.id+'\')">Delete</button>'+
+      '</div>'+
+    '</div>'
+  }).join('')
+}
+
+async function markListingSold(id){
+  try{
+    var {error}=await sb.from('listings').update({status:'sold'}).eq('id',id)
+    if(error)throw error
+    loadMyListings()
+    loadListings()
+  }catch(e){alert('Could not update listing. Please try again.')}
+}
+
+async function deleteMyListing(id){
+  if(!confirm('Delete this listing? This cannot be undone.'))return
+  try{
+    var {error}=await sb.from('listings').delete().eq('id',id)
+    if(error)throw error
+    loadMyListings()
+    loadListings()
+  }catch(e){alert('Could not delete listing. Please try again.')}
+}
+
+/* ── MESSAGING ── */
+async function handleMessageSeller(){
+  var l=state.activeListing
+  if(!l||!state.user)return
+  if(!l.seller_id){alert('Messaging is not available for this listing.');return}
+  if(l.seller_id===state.user.id){alert('This is your own listing.');return}
+  var msgBtn=document.getElementById('detail-msg-btn')
+  msgBtn.disabled=true
+  try{
+    var existing=await sb.from('conversations').select('*').eq('listing_id',l.id).eq('buyer_id',state.user.id).eq('seller_id',l.seller_id).maybeSingle()
+    var conv=existing.data
+    if(!conv){
+      var callsign=(state.user.user_metadata&&state.user.user_metadata.callsign)||'Member'
+      var {data,error}=await sb.from('conversations').insert({
+        listing_id:l.id,buyer_id:state.user.id,seller_id:l.seller_id,
+        buyer_callsign:callsign,seller_callsign:l.callsign
+      }).select().single()
+      if(error)throw error
+      conv=data
+    }
+    conv.listings={title:l.title}
+    state.conversations=state.conversations.filter(function(c){return c.id!==conv.id})
+    state.conversations.unshift(conv)
+    enterConversation(conv)
+  }catch(e){
+    alert('Could not start conversation. Please try again.')
+  }
+  msgBtn.disabled=false
+}
+
+async function loadConversations(){
+  var wrap=document.getElementById('conversations-list')
+  if(!state.user){wrap.innerHTML='';return}
+  wrap.innerHTML='<div style="padding:2rem;text-align:center;color:#555;font-size:14px">Loading…</div>'
+  try{
+    var {data,error}=await sb.from('conversations').select('*, listings(title), messages(body,created_at,sender_id,read)').or('buyer_id.eq.'+state.user.id+',seller_id.eq.'+state.user.id).order('last_message_at',{ascending:false})
+    if(error)throw error
+    state.conversations=data||[]
+    renderConversations()
+  }catch(e){
+    wrap.innerHTML='<div class="empty-state"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><p>No messages yet. Conversations with buyers and sellers will appear here.</p></div>'
+  }
+}
+
+function renderConversations(){
+  var wrap=document.getElementById('conversations-list')
+  if(!state.conversations.length){
+    wrap.innerHTML='<div class="empty-state"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><p>No messages yet. Conversations with buyers and sellers will appear here.</p></div>'
+    return
+  }
+  wrap.innerHTML=state.conversations.map(function(c){
+    var iAmBuyer=c.buyer_id===state.user.id
+    var otherName=(iAmBuyer?c.seller_callsign:c.buyer_callsign)||'Member'
+    var msgs=(c.messages||[]).slice().sort(function(a,b){return new Date(a.created_at)-new Date(b.created_at)})
+    var last=msgs[msgs.length-1]
+    var unread=msgs.filter(function(m){return !m.read&&m.sender_id!==state.user.id}).length
+    return '<div class="conv-row" onclick="openConversation(\''+c.id+'\')">'+
+      '<div class="conv-avatar">'+otherName.substring(0,2).toUpperCase()+'</div>'+
+      '<div class="conv-info">'+
+        '<div class="conv-top"><span class="conv-name">'+escapeHtml(otherName)+'</span><span class="conv-time">'+(last?timeAgo(last.created_at):'')+'</span></div>'+
+        '<div class="conv-listing">'+escapeHtml(c.listings?c.listings.title:'Listing removed')+'</div>'+
+        '<div class="conv-preview">'+(last?escapeHtml(last.body):'No messages yet')+'</div>'+
+      '</div>'+
+      (unread?'<div class="conv-unread"></div>':'')+
+    '</div>'
+  }).join('')
+}
+
+function openConversation(id){
+  var conv=state.conversations.find(function(c){return c.id===id})
+  if(!conv)return
+  enterConversation(conv)
+}
+
+function enterConversation(conv){
+  state.activeConversation=conv
+  var iAmBuyer=conv.buyer_id===state.user.id
+  var otherName=(iAmBuyer?conv.seller_callsign:conv.buyer_callsign)||'Member'
+  document.getElementById('chat-title').textContent=otherName
+  showScreen('screen-chat')
+  loadChatMessages(conv.id).then(function(){
+    subscribeToChat(conv.id)
+    markConversationRead(conv.id)
+  })
+}
+
+async function loadChatMessages(convId){
+  var body=document.getElementById('chat-body')
+  body.innerHTML='<div style="text-align:center;color:#999;font-size:13px;padding:20px">Loading…</div>'
+  try{
+    var {data,error}=await sb.from('messages').select('*').eq('conversation_id',convId).order('created_at',{ascending:true})
+    if(error)throw error
+    renderChatMessages(data||[])
+  }catch(e){
+    body.innerHTML='<div style="text-align:center;color:#999;font-size:13px;padding:20px">Could not load messages.</div>'
+  }
+}
+
+function renderChatMessages(msgs){
+  var body=document.getElementById('chat-body')
+  if(!msgs.length){
+    body.innerHTML='<div style="text-align:center;color:#999;font-size:13px;padding:20px">Say hello 👋</div>'
+    return
+  }
+  body.innerHTML=msgs.map(function(m){
+    var mine=m.sender_id===state.user.id
+    return '<div class="chat-bubble '+(mine?'mine':'theirs')+'">'+escapeHtml(m.body)+'<span class="chat-time">'+formatChatTime(m.created_at)+'</span></div>'
+  }).join('')
+  body.scrollTop=body.scrollHeight
+}
+
+function formatChatTime(dateStr){
+  var d=new Date(dateStr)
+  return d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
+}
+
+async function sendChatMessage(){
+  var input=document.getElementById('chat-input')
+  var text=input.value.trim()
+  if(!text||!state.activeConversation)return
+  input.value=''
+  try{
+    var {error}=await sb.from('messages').insert({conversation_id:state.activeConversation.id,sender_id:state.user.id,body:text})
+    if(error)throw error
+    sb.from('conversations').update({last_message_at:new Date().toISOString()}).eq('id',state.activeConversation.id).then(function(){})
+    loadChatMessages(state.activeConversation.id)
+  }catch(e){
+    alert('Message failed to send. Please try again.')
+    input.value=text
+  }
+}
+
+async function markConversationRead(convId){
+  try{
+    await sb.from('messages').update({read:true}).eq('conversation_id',convId).neq('sender_id',state.user.id)
+  }catch(e){}
+}
+
+function subscribeToChat(convId){
+  if(chatChannel){sb.removeChannel(chatChannel);chatChannel=null}
+  chatChannel=sb.channel('chat-'+convId)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'conversation_id=eq.'+convId},function(){
+      loadChatMessages(convId)
+      markConversationRead(convId)
+    })
+    .subscribe()
+}
+
 async function init(){
+  renderPhotoSlots()
   var {data:{session}}=await sb.auth.getSession()
   if(session){
     state.user=session.user
