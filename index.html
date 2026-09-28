@@ -474,9 +474,9 @@ html,body{height:100%;background:#111;font-family:var(--font)}
         </div>
         <div class="field"><label>Condition</label>
           <div class="cond-row">
-            <button class="cond-btn active" onclick="setCond(this,'new')">New</button>
-            <button class="cond-btn" onclick="setCond(this,'used-good')">Used — good</button>
-            <button class="cond-btn" onclick="setCond(this,'used-fair')">Used — fair</button>
+            <button class="cond-btn active" data-cond="new" onclick="setCond(this,'new')">New</button>
+            <button class="cond-btn" data-cond="used-good" onclick="setCond(this,'used-good')">Used — good</button>
+            <button class="cond-btn" data-cond="used-fair" onclick="setCond(this,'used-fair')">Used — fair</button>
           </div>
         </div>
         <div class="field"><label>Description</label><textarea id="sell-desc" placeholder="Describe the item — model, age, condition, accessories, any faults..."></textarea></div>
@@ -503,11 +503,8 @@ html,body{height:100%;background:#111;font-family:var(--font)}
       <div class="info-box"><p>Weight and dimensions generate accurate courier quotes for buyers, calculated from your registered address. The Ops Depot charges <strong>5% commission</strong> on completed sales.</p></div>
     </div>
     <div id="sell-step3" style="display:none;flex-direction:column;gap:14px">
-      <div class="field"><label>Account holder name</label><input type="text" placeholder="Full name on account"/></div>
-      <div class="field"><label>Sort code</label><input type="text" placeholder="00-00-00" maxlength="8"/></div>
-      <div class="field"><label>Account number</label><input type="text" placeholder="12345678" maxlength="8"/></div>
-      <div class="info-box"><p>Bank details held securely by <strong>Stripe</strong>. Payouts within 2 working days of a completed sale.</p></div>
-      <div class="field"><label>Listing visibility</label><select><option>Visible to all members immediately</option><option>Save as draft</option></select></div>
+      <div class="info-box" id="payout-status-box"><p>Checking your payout account…</p></div>
+      <div class="field"><label>Listing visibility</label><select id="sell-visibility"><option value="active">Visible to all members immediately</option><option value="draft">Save as draft</option></select></div>
     </div>
   </div>
   <div class="sell-footer">
@@ -538,17 +535,11 @@ html,body{height:100%;background:#111;font-family:var(--font)}
     <div class="field"><label>Address line 1</label><input type="text" id="co-address1" placeholder="Street address"/></div>
     <div class="field"><label>Town / city</label><input type="text" id="co-city" placeholder="Town or city"/></div>
     <div class="field"><label>Postcode</label><input type="text" id="co-postcode" placeholder="e.g. BN1 1AA"/></div>
-    <div class="section-label">Payment</div>
-    <div class="field"><label>Card number</label><input type="text" placeholder="•••• •••• •••• ••••" maxlength="19"/></div>
-    <div class="card-row">
-      <div class="field" style="flex:1"><label>Expiry</label><input type="text" placeholder="MM/YY" maxlength="5"/></div>
-      <div class="field" style="flex:1"><label>CVC</label><input type="text" placeholder="•••" maxlength="3"/></div>
-    </div>
     <div class="stripe-note">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Secured by Stripe. Card details never stored on The Ops Depot.
+      You'll enter your card details on Stripe's secure payment page. Nothing is ever typed into The Ops Depot.
     </div>
-    <button class="btn btn-primary" onclick="handleCheckout()">Pay <span id="pay-total">—</span> securely</button>
+    <button class="btn btn-primary" id="checkout-pay-btn" onclick="handleCheckout()">Pay <span id="pay-total">—</span> securely</button>
     <div style="height:20px"></div>
   </div>
 </div>
@@ -562,8 +553,8 @@ html,body{height:100%;background:#111;font-family:var(--font)}
   </div>
   <div class="success-screen">
     <div class="success-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2d6a2d" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg></div>
-    <div class="success-title">Order confirmed</div>
-    <div class="success-sub">Payment held securely by Stripe. The seller has 48 hours to dispatch. You'll receive tracking details by email once shipped.</div>
+    <div class="success-title" id="order-success-title">Order confirmed</div>
+    <div class="success-sub" id="order-success-sub">Payment held securely by Stripe. The seller has 48 hours to dispatch. You'll receive tracking details by email once shipped.</div>
     <button class="btn btn-primary" style="margin-top:1rem" onclick="showScreen('screen-home')">Back to browse</button>
   </div>
 </div>
@@ -787,6 +778,7 @@ async function getShippingRates(listing){
     if(data.rates&&data.rates.length>0){
       return data.rates.map(function(r){
         return {
+          id:r.object_id||null,
           name:r.carrier+' — '+r.service,
           price:parseFloat(r.price),
           eta:r.days?r.days+' working days':'Estimated'
@@ -1077,7 +1069,41 @@ function toggleDetailSave(){
   btn.textContent=state.saved[id]?'♥':'♡'
 }
 
-function handleCheckout(){showScreen('screen-order-success')}
+async function handleCheckout(){
+  if(!state.activeListing||!state.selectedCourier)return
+  if(!state.selectedCourier.id){alert('Please choose a postage option again.');return}
+  var name=document.getElementById('co-name').value.trim()
+  var address1=document.getElementById('co-address1').value.trim()
+  var city=document.getElementById('co-city').value.trim()
+  var postcode=document.getElementById('co-postcode').value.trim()
+  if(!name||!address1||!city||!postcode){alert('Please fill in your delivery address.');return}
+  var btn=document.getElementById('checkout-pay-btn')
+  var prevText=btn.innerHTML
+  btn.textContent='Redirecting to Stripe…'
+  btn.disabled=true
+  try{
+    var {data:{session}}=await sb.auth.getSession()
+    var res=await fetch('https://pxbddzaqhejrgxrudesv.supabase.co/functions/v1/create-checkout-session',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
+      body:JSON.stringify({
+        listing_id:state.activeListing.id,
+        rate_id:state.selectedCourier.id,
+        delivery:{name:name,address1:address1,city:city,postcode:postcode}
+      })
+    })
+    var data=await res.json()
+    if(data.url){
+      window.location.href=data.url
+      return
+    }
+    alert(data.error||'Could not start checkout. Please try again.')
+  }catch(e){
+    alert('Could not start checkout. Please try again.')
+  }
+  btn.innerHTML=prevText
+  btn.disabled=false
+}
 
 function setCond(el,val){
   state.sellCond=val
@@ -1147,12 +1173,94 @@ function calcBreakdown(){
   document.getElementById('bd-receive').textContent='£'+Math.max(0,receive).toFixed(2)
 }
 
+var SELL_DRAFT_KEY='opsdepot_sell_draft'
+
+function sellerOnboarded(){
+  return !!(state.profile&&state.profile.stripe_onboarded&&state.profile.payouts_enabled)
+}
+
+function saveSellDraft(){
+  try{
+    localStorage.setItem(SELL_DRAFT_KEY,JSON.stringify({
+      title:document.getElementById('sell-title').value,
+      cat:document.getElementById('sell-cat').value,
+      cond:state.sellCond,
+      desc:document.getElementById('sell-desc').value,
+      price:document.getElementById('sell-price').value,
+      weight:document.getElementById('sell-weight').value,
+      photos:state.sellPhotos,
+      visibility:document.getElementById('sell-visibility')?document.getElementById('sell-visibility').value:'active'
+    }))
+  }catch(e){}
+}
+
+function restoreSellDraft(){
+  var raw
+  try{raw=localStorage.getItem(SELL_DRAFT_KEY)}catch(e){raw=null}
+  if(!raw)return false
+  var d
+  try{d=JSON.parse(raw)}catch(e){return false}
+  document.getElementById('sell-title').value=d.title||''
+  document.getElementById('sell-cat').value=d.cat||''
+  document.getElementById('sell-desc').value=d.desc||''
+  document.getElementById('sell-price').value=d.price||''
+  document.getElementById('sell-weight').value=d.weight||''
+  if(document.getElementById('sell-visibility'))document.getElementById('sell-visibility').value=d.visibility||'active'
+  state.sellCond=d.cond||'new'
+  document.querySelectorAll('.cond-btn').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-cond')===state.sellCond)})
+  state.sellPhotos=d.photos||[]
+  renderPhotoSlots()
+  state.sellStep=3
+  return true
+}
+
+function clearSellDraft(){
+  try{localStorage.removeItem(SELL_DRAFT_KEY)}catch(e){}
+}
+
+async function connectPayoutAccount(){
+  if(!state.user)return
+  saveSellDraft()
+  var btn=document.getElementById('sell-next-btn')
+  var prevText=btn.textContent
+  btn.textContent='Connecting…'
+  btn.disabled=true
+  try{
+    var {data:{session}}=await sb.auth.getSession()
+    var res=await fetch('https://pxbddzaqhejrgxrudesv.supabase.co/functions/v1/connect-onboarding',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token}
+    })
+    var data=await res.json()
+    if(data.url){
+      window.location.href=data.url
+      return
+    }
+    if(data.done){
+      state.profile.stripe_onboarded=true
+      state.profile.payouts_enabled=true
+      updateSellStep()
+    }else{
+      alert(data.error||'Could not start payout setup. Please try again.')
+    }
+  }catch(e){
+    alert('Could not start payout setup. Please try again.')
+  }
+  btn.textContent=prevText
+  btn.disabled=false
+}
+
 async function sellNext(){
   if(state.sellStep===3){
+    if(!sellerOnboarded()){
+      await connectPayoutAccount()
+      return
+    }
     var btn=document.getElementById('sell-next-btn')
     btn.textContent='Posting...'
     btn.disabled=true
     try{
+      var visibility=document.getElementById('sell-visibility')
       var {error}=await sb.from('listings').insert({
         seller_id:state.user.id,
         callsign:state.user.user_metadata?.callsign||'Anonymous',
@@ -1164,9 +1272,10 @@ async function sellNext(){
         weight_kg:parseFloat(document.getElementById('sell-weight').value)||null,
         city:(state.profile&&state.profile.city)||'',
         photos:state.sellPhotos.filter(function(p){return p.url}).map(function(p){return p.url}),
-        status:'active'
+        status:(visibility&&visibility.value==='draft')?'draft':'active'
       })
       if(error)throw error
+      clearSellDraft()
       showScreen('screen-listing-success')
       state.sellStep=1
       state.sellPhotos=[]
@@ -1183,6 +1292,15 @@ async function sellNext(){
   state.sellStep++;updateSellStep()
 }
 function sellPrev(){if(state.sellStep===1)return;state.sellStep--;updateSellStep()}
+function renderPayoutStatus(){
+  var box=document.getElementById('payout-status-box')
+  if(!box)return
+  if(sellerOnboarded()){
+    box.innerHTML='<p><strong>Payout account connected.</strong> Payouts land in your bank a couple of days after a sale, held securely by Stripe.</p>'
+  }else{
+    box.innerHTML='<p>You\'ll connect a payout account with Stripe before this can go live — a short one-time form (bank details, a couple of ID questions). Takes a couple of minutes, and only sellers ever need to do it.</p>'
+  }
+}
 function updateSellStep(){
   var s=state.sellStep
   document.getElementById('sell-step1').style.display=s===1?'block':'none'
@@ -1191,11 +1309,12 @@ function updateSellStep(){
   document.getElementById('sell-progress').style.width=(s/3*100)+'%'
   var labels=['Step 1 of 3 — Item details','Step 2 of 3 — Pricing & postage','Step 3 of 3 — Payout & publish']
   document.getElementById('sell-step-label').textContent=labels[s-1]
-  var nextLabels=['Next — pricing','Next — payout details','Post listing']
+  var nextLabels=['Next — pricing','Next — payout details',(s===3&&!sellerOnboarded())?'Connect payout account':'Post listing']
   document.getElementById('sell-next-btn').textContent=nextLabels[s-1]
   document.getElementById('sell-back-btn').style.opacity=s===1?'0.3':'1'
   document.getElementById('sell-back-btn').disabled=s===1
   if(s===2)calcBreakdown()
+  if(s===3)renderPayoutStatus()
 }
 
 function adminTab(el,panelId){
@@ -1497,13 +1616,74 @@ function subscribeToChat(convId){
     .subscribe()
 }
 
+async function showOrderResult(sessionId){
+  showScreen('screen-order-success')
+  var titleEl=document.getElementById('order-success-title')
+  var subEl=document.getElementById('order-success-sub')
+  if(!sessionId)return
+  titleEl.textContent='Confirming your payment…'
+  subEl.textContent='One moment while we confirm this with Stripe.'
+  for(var i=0;i<6;i++){
+    var {data:order}=await sb.from('orders').select('status').eq('stripe_checkout_session_id',sessionId).maybeSingle()
+    if(order&&order.status==='paid'){
+      titleEl.textContent='Order confirmed'
+      subEl.textContent="Payment held securely by Stripe. The seller has 48 hours to dispatch. You'll receive tracking details by email once shipped."
+      loadListings()
+      return
+    }
+    await new Promise(function(r){setTimeout(r,1500)})
+  }
+  titleEl.textContent='Payment received'
+  subEl.textContent="We're still confirming this with Stripe — check My Listings or Messages shortly, or contact the seller if it doesn't appear."
+}
+
+async function finishConnectReturn(){
+  try{
+    var {data:{session}}=await sb.auth.getSession()
+    var res=await fetch('https://pxbddzaqhejrgxrudesv.supabase.co/functions/v1/connect-onboarding',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token}
+    })
+    var data=await res.json()
+    if(data.url){
+      window.location.href=data.url
+      return
+    }
+    if(data.done&&state.profile){
+      state.profile.stripe_onboarded=true
+      state.profile.payouts_enabled=true
+    }
+  }catch(e){}
+  restoreSellDraft()
+  showScreen('screen-sell')
+  updateSellStep()
+}
+
+async function handleRedirectParams(){
+  var params=new URLSearchParams(window.location.search)
+  var checkout=params.get('checkout')
+  var connect=params.get('connect')
+  if(!checkout&&!connect)return
+  window.history.replaceState({},'',window.location.pathname)
+  if(checkout==='success'){
+    await showOrderResult(params.get('session_id'))
+  }else if(checkout==='cancel'){
+    showScreen('screen-home')
+    alert('Checkout was cancelled — no payment was taken.')
+  }else if(connect==='return'||connect==='refresh'){
+    await finishConnectReturn()
+  }
+}
+
 async function init(){
   renderPhotoSlots()
   var {data:{session}}=await sb.auth.getSession()
   if(session){
     state.user=session.user
+    await syncProfile()
     showScreen('screen-home')
     loadListings()
+    await handleRedirectParams()
   }
 }
 init()
