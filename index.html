@@ -83,8 +83,8 @@ html,body{height:100%;background:#111;font-family:var(--font)}
 .search-inner svg{color:#666;flex-shrink:0;width:18px;height:18px}
 .search-inner input{background:none;border:none;outline:none;color:#111;font-size:16px;padding:13px 0;width:100%;font-family:var(--font)}
 .search-inner input::placeholder{color:#999}
-.cats-wrap{padding:8px 0 4px;flex-shrink:0}
-.cats{display:flex;gap:8px;overflow-x:auto}
+.cats-wrap{padding:8px 0 4px;flex-shrink:0;margin:0 -14px}
+.cats{display:flex;gap:8px;overflow-x:auto;padding:0 14px}
 .cats::-webkit-scrollbar{display:none}
 .cat{white-space:nowrap;padding:12px 22px;border-radius:25px;font-size:15px;font-weight:600;cursor:pointer;border:2px solid rgba(255,255,255,0.6);background:rgba(0,0,0,0.4);color:#fff;flex-shrink:0;font-family:var(--font)}
 .cat.active{background:var(--tan);color:#fff;border-color:var(--tan)}
@@ -395,7 +395,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
   <div class="bottom-nav">
     <button class="nav-item active" onclick="showScreen('screen-home')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>Browse</button>
     <button class="nav-item" onclick="showScreen('screen-saved')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Saved</button>
-    <button class="nav-item" onclick="showScreen('screen-sell')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Sell</button>
+    <button class="nav-item" onclick="startNewListing()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Sell</button>
     <button class="nav-item" onclick="showScreen('screen-messages')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</button>
     <button class="nav-item" onclick="showScreen('screen-profile')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
   </div>
@@ -448,7 +448,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
     <button class="back-btn" onclick="showScreen('screen-home')">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
     </button>
-    <span style="color:#fff;font-size:16px;font-weight:600">Create listing</span>
+    <span style="color:#fff;font-size:16px;font-weight:600" id="sell-header-title">Create listing</span>
     <div style="width:42px"></div>
   </div>
   <div class="progress-bar"><div class="progress-fill" id="sell-progress" style="width:33%"></div></div>
@@ -581,11 +581,11 @@ html,body{height:100%;background:#111;font-family:var(--font)}
     <span style="color:#fff;font-size:16px;font-weight:600">Saved listings</span>
     <div style="width:42px"></div>
   </div>
-  <div class="feed" id="saved-feed" style="padding-top:10px;border-radius:0"></div>
+  <div class="feed" id="saved-feed" style="padding-top:10px"></div>
   <div class="bottom-nav">
     <button class="nav-item" onclick="showScreen('screen-home')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>Browse</button>
     <button class="nav-item active" onclick="showScreen('screen-saved')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Saved</button>
-    <button class="nav-item" onclick="showScreen('screen-sell')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Sell</button>
+    <button class="nav-item" onclick="startNewListing()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Sell</button>
     <button class="nav-item" onclick="showScreen('screen-messages')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</button>
     <button class="nav-item" onclick="showScreen('screen-profile')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
   </div>
@@ -602,7 +602,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
   <div class="bottom-nav">
     <button class="nav-item" onclick="showScreen('screen-home')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>Browse</button>
     <button class="nav-item" onclick="showScreen('screen-saved')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Saved</button>
-    <button class="nav-item" onclick="showScreen('screen-sell')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Sell</button>
+    <button class="nav-item" onclick="startNewListing()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Sell</button>
     <button class="nav-item active" onclick="showScreen('screen-messages')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</button>
     <button class="nav-item" onclick="showScreen('screen-profile')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
   </div>
@@ -638,6 +638,33 @@ html,body{height:100%;background:#111;font-family:var(--font)}
   <div class="profile-body" id="my-listings-list"></div>
 </div>
 
+<!-- ══ ORDER HISTORY ══ -->
+<div id="screen-order-history" class="screen">
+  <div class="inner-header">
+    <button class="back-btn" onclick="showScreen('screen-profile')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+    </button>
+    <span style="color:#fff;font-size:16px;font-weight:600">Order history</span>
+    <div style="width:42px"></div>
+  </div>
+  <div class="profile-body" id="order-history-list"></div>
+</div>
+
+<!-- ══ PAYOUT SETTINGS ══ -->
+<div id="screen-payout-settings" class="screen">
+  <div class="inner-header">
+    <button class="back-btn" onclick="showScreen('screen-profile')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
+    </button>
+    <span style="color:#fff;font-size:16px;font-weight:600">Payout settings</span>
+    <div style="width:42px"></div>
+  </div>
+  <div class="profile-body">
+    <div class="info-box" id="payout-settings-box"><p>Checking your payout account…</p></div>
+    <button class="btn btn-primary" id="payout-settings-btn" onclick="openPayoutSettings()" style="display:none">Connect payout account</button>
+  </div>
+</div>
+
 <!-- ══ PROFILE ══ -->
 <div id="screen-profile" class="screen">
   <div class="inner-header">
@@ -655,23 +682,23 @@ html,body{height:100%;background:#111;font-family:var(--font)}
       <div class="profile-meta">Member since 2025 · Verified operative</div>
     </div>
     <div class="profile-stats">
-      <div class="profile-stat"><div class="profile-stat-val">3</div><div class="profile-stat-label">Sold</div></div>
-      <div class="profile-stat"><div class="profile-stat-val">2</div><div class="profile-stat-label">Bought</div></div>
-      <div class="profile-stat"><div class="profile-stat-val">4</div><div class="profile-stat-label">Saved</div></div>
+      <div class="profile-stat" style="cursor:pointer" onclick="showScreen('screen-my-listings')"><div class="profile-stat-val" id="profile-stat-sold">—</div><div class="profile-stat-label">Sold</div></div>
+      <div class="profile-stat" style="cursor:pointer" onclick="showScreen('screen-order-history')"><div class="profile-stat-val" id="profile-stat-bought">—</div><div class="profile-stat-label">Bought</div></div>
+      <div class="profile-stat" style="cursor:pointer" onclick="showScreen('screen-saved')"><div class="profile-stat-val" id="profile-stat-saved">—</div><div class="profile-stat-label">Saved</div></div>
     </div>
     <div class="section-label">My account</div>
     <div class="menu-list">
       <div class="menu-item" onclick="showScreen('screen-my-listings')">My listings <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
-      <div class="menu-item">Purchase history <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
-      <div class="menu-item">Payout settings <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
+      <div class="menu-item" onclick="showScreen('screen-order-history')">Order history <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
+      <div class="menu-item" onclick="showScreen('screen-payout-settings')">Payout settings <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
       <div class="menu-item">Change password <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
-      <div class="menu-item" onclick="showScreen('screen-admin')">Admin panel <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
+      <div class="menu-item" id="admin-menu-item" onclick="showScreen('screen-admin')" style="display:none">Admin panel <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
     </div>
   </div>
   <div class="bottom-nav">
     <button class="nav-item" onclick="showScreen('screen-home')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>Browse</button>
     <button class="nav-item" onclick="showScreen('screen-saved')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Saved</button>
-    <button class="nav-item" onclick="showScreen('screen-sell')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Sell</button>
+    <button class="nav-item" onclick="startNewListing()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Sell</button>
     <button class="nav-item" onclick="showScreen('screen-messages')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</button>
     <button class="nav-item active" onclick="showScreen('screen-profile')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
   </div>
@@ -742,7 +769,7 @@ const SUPABASE_URL='https://pxbddzaqhejrgxrudesv.supabase.co'
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4YmRkemFxaGVqcmd4cnVkZXN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxODg4MjgsImV4cCI6MjA5ODc2NDgyOH0.zBWxEwHqNlYEETBQ3aTxaSftJtZ7zNQtohxgEhrQicE'
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
 
-var state={user:null,profile:null,listings:[],saved:{},activeCat:'All',activeListing:null,selectedCourier:null,sellStep:1,sellCond:'new',sellPhotos:[],conversations:[],activeConversation:null}
+var state={user:null,profile:null,listings:[],saved:{},activeCat:'All',activeListing:null,selectedCourier:null,sellStep:1,sellCond:'new',sellPhotos:[],editingListingId:null,conversations:[],activeConversation:null}
 var MAX_PHOTOS=6
 var chatChannel=null
 
@@ -796,11 +823,16 @@ async function getShippingRates(listing){
 }
 
 function showScreen(id){
+  if(id==='screen-admin'&&!(state.profile&&state.profile.is_admin)){
+    id='screen-profile'
+  }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'))
   document.getElementById(id).classList.add('active')
   if(id==='screen-home')renderFeed()
   if(id==='screen-saved')renderSaved()
   if(id==='screen-my-listings')loadMyListings()
+  if(id==='screen-order-history')loadOrderHistory()
+  if(id==='screen-payout-settings')loadPayoutSettings()
   if(id==='screen-messages')loadConversations()
   if(id==='screen-profile')renderProfileHeader()
   if(id==='screen-checkout')prefillCheckoutAddress()
@@ -812,6 +844,26 @@ function renderProfileHeader(){
   document.getElementById('profile-avatar').textContent=callsign.substring(0,2).toUpperCase()
   document.getElementById('profile-callsign').textContent=callsign
   document.getElementById('profile-location').textContent=(state.profile&&state.profile.city)?state.profile.city+', UK':''
+  var adminItem=document.getElementById('admin-menu-item')
+  if(adminItem)adminItem.style.display=(state.profile&&state.profile.is_admin)?'flex':'none'
+  loadProfileStats()
+}
+
+async function loadProfileStats(){
+  var savedCount=Object.keys(state.saved).filter(function(id){return state.saved[id]}).length
+  var savedEl=document.getElementById('profile-stat-saved')
+  if(savedEl)savedEl.textContent=savedCount
+  if(!state.user)return
+  try{
+    var {count:soldCount}=await sb.from('listings').select('id',{count:'exact',head:true}).eq('seller_id',state.user.id).eq('status','sold')
+    var soldEl=document.getElementById('profile-stat-sold')
+    if(soldEl)soldEl.textContent=soldCount||0
+  }catch(e){}
+  try{
+    var {count:boughtCount}=await sb.from('orders').select('id',{count:'exact',head:true}).eq('buyer_id',state.user.id).in('status',['paid','shipped','completed'])
+    var boughtEl=document.getElementById('profile-stat-bought')
+    if(boughtEl)boughtEl.textContent=boughtCount||0
+  }catch(e){}
 }
 
 function prefillCheckoutAddress(){
@@ -980,14 +1032,22 @@ function renderSaved(){
   var feed=document.getElementById('saved-feed')
   var savedItems=state.listings.filter(function(l){return state.saved[l.id]})
   if(!savedItems.length){
+    feed.style.display='block'
     feed.innerHTML='<div class="empty-state"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><p>No saved listings yet. Tap the heart on any listing to save it.</p></div>'
     return
   }
+  feed.style.display='grid'
   feed.innerHTML=savedItems.map(function(l){
+    var safeId=String(l.id).replace(/[^a-zA-Z0-9-_]/g,'')
     var photo=firstPhoto(l)
-    return '<div class="listing-card" onclick="openListing(\''+l.id+'\')">'+
+    return '<div class="listing-card" onclick="openListing(\''+safeId+'\')">'+
       '<div class="listing-img"'+(photo?' style="background:url(\''+photo+'\') center/cover"':'')+'>'+(photo?'':iconFor(l.cat))+'</div>'+
-      '<div class="listing-card-body"><div class="listing-title">'+l.title+'</div><div class="listing-price">£'+l.price+'</div></div>'+
+      '<button class="save-btn saved" onclick="event.stopPropagation();toggleSave(\''+safeId+'\')">♥</button>'+
+      '<div class="listing-card-body">'+
+        '<div class="listing-title">'+l.title+'</div>'+
+        '<div class="listing-price">£'+l.price+'</div>'+
+        '<div class="listing-badge-row"><span class="badge '+condClass(l.cond)+'">'+condLabel(l.cond)+'</span></div>'+
+      '</div>'+
     '</div>'
   }).join('')
 }
@@ -996,7 +1056,12 @@ function firstPhoto(l){
   return (l.photos&&l.photos.length)?l.photos[0]:null
 }
 
-function toggleSave(id){state.saved[id]=!state.saved[id];renderFeed()}
+function toggleSave(id){
+  state.saved[id]=!state.saved[id]
+  renderFeed()
+  var savedScreen=document.getElementById('screen-saved')
+  if(savedScreen&&savedScreen.classList.contains('active'))renderSaved()
+}
 
 function openListing(id){
   var l=state.listings.find(function(x){return String(x.id)===String(id)})
@@ -1189,7 +1254,8 @@ function saveSellDraft(){
       price:document.getElementById('sell-price').value,
       weight:document.getElementById('sell-weight').value,
       photos:state.sellPhotos,
-      visibility:document.getElementById('sell-visibility')?document.getElementById('sell-visibility').value:'active'
+      visibility:document.getElementById('sell-visibility')?document.getElementById('sell-visibility').value:'active',
+      editingListingId:state.editingListingId
     }))
   }catch(e){}
 }
@@ -1210,6 +1276,8 @@ function restoreSellDraft(){
   document.querySelectorAll('.cond-btn').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-cond')===state.sellCond)})
   state.sellPhotos=d.photos||[]
   renderPhotoSlots()
+  state.editingListingId=d.editingListingId||null
+  document.getElementById('sell-header-title').textContent=state.editingListingId?'Edit listing':'Create listing'
   state.sellStep=3
   return true
 }
@@ -1221,6 +1289,7 @@ function clearSellDraft(){
 async function connectPayoutAccount(){
   if(!state.user)return
   saveSellDraft()
+  try{localStorage.setItem('opsdepot_connect_return','sell')}catch(e){}
   var btn=document.getElementById('sell-next-btn')
   var prevText=btn.textContent
   btn.textContent='Connecting…'
@@ -1257,35 +1326,50 @@ async function sellNext(){
       return
     }
     var btn=document.getElementById('sell-next-btn')
-    btn.textContent='Posting...'
+    var editingId=state.editingListingId
+    btn.textContent=editingId?'Saving...':'Posting...'
     btn.disabled=true
     try{
       var visibility=document.getElementById('sell-visibility')
-      var {error}=await sb.from('listings').insert({
-        seller_id:state.user.id,
-        callsign:state.user.user_metadata?.callsign||'Anonymous',
+      var listingData={
         title:document.getElementById('sell-title').value,
         category:document.getElementById('sell-cat').value,
         condition:state.sellCond,
         description:document.getElementById('sell-desc').value,
         price:parseFloat(document.getElementById('sell-price').value),
         weight_kg:parseFloat(document.getElementById('sell-weight').value)||null,
-        city:(state.profile&&state.profile.city)||'',
         photos:state.sellPhotos.filter(function(p){return p.url}).map(function(p){return p.url}),
         status:(visibility&&visibility.value==='draft')?'draft':'active'
-      })
+      }
+      var error
+      if(editingId){
+        var res=await sb.from('listings').update(listingData).eq('id',editingId).eq('seller_id',state.user.id)
+        error=res.error
+      }else{
+        listingData.seller_id=state.user.id
+        listingData.callsign=state.user.user_metadata?.callsign||'Anonymous'
+        listingData.city=(state.profile&&state.profile.city)||''
+        var res2=await sb.from('listings').insert(listingData)
+        error=res2.error
+      }
       if(error)throw error
       clearSellDraft()
-      showScreen('screen-listing-success')
+      state.editingListingId=null
       state.sellStep=1
       state.sellPhotos=[]
       renderPhotoSlots()
-      updateSellStep()
       loadListings()
+      if(editingId){
+        showScreen('screen-my-listings')
+        loadMyListings()
+      }else{
+        showScreen('screen-listing-success')
+        updateSellStep()
+      }
     }catch(e){
-      alert('Failed to post listing. Please try again.')
+      alert(editingId?'Failed to save changes. Please try again.':'Failed to post listing. Please try again.')
     }
-    btn.textContent='Post listing'
+    btn.textContent=editingId?'Save changes':'Post listing'
     btn.disabled=false
     return
   }
@@ -1301,15 +1385,83 @@ function renderPayoutStatus(){
     box.innerHTML='<p>You\'ll connect a payout account with Stripe before this can go live — a short one-time form (bank details, a couple of ID questions). Takes a couple of minutes, and only sellers ever need to do it.</p>'
   }
 }
+
+/* ── PAYOUT SETTINGS (profile) ── */
+async function loadPayoutSettings(){
+  var box=document.getElementById('payout-settings-box')
+  var btn=document.getElementById('payout-settings-btn')
+  if(!state.user){box.innerHTML='<p>Please sign in.</p>';btn.style.display='none';return}
+  box.innerHTML='<p>Checking your payout account…</p>'
+  btn.style.display='none'
+  try{
+    var {data,error}=await sb.from('profiles').select('stripe_onboarded,payouts_enabled').eq('id',state.user.id).maybeSingle()
+    if(error)throw error
+    if(state.profile){
+      state.profile.stripe_onboarded=!!(data&&data.stripe_onboarded)
+      state.profile.payouts_enabled=!!(data&&data.payouts_enabled)
+    }
+    renderPayoutSettingsBox()
+  }catch(e){
+    box.innerHTML='<div class="empty-state"><p>Could not check your payout account. Please try again.</p></div>'
+    btn.textContent='Connect payout account'
+    btn.style.display='block'
+  }
+}
+
+function renderPayoutSettingsBox(){
+  var box=document.getElementById('payout-settings-box')
+  var btn=document.getElementById('payout-settings-btn')
+  if(sellerOnboarded()){
+    box.innerHTML='<p><strong>Payout account connected.</strong> Payouts land in your bank a couple of days after a sale, held securely by Stripe.</p>'
+    btn.style.display='none'
+  }else{
+    box.innerHTML='<p>Connect a payout account with Stripe to receive money from sales — a short one-time form (bank details, a couple of ID questions). Takes a couple of minutes, and you only need to do it once.</p>'
+    btn.textContent='Connect payout account'
+    btn.style.display='block'
+  }
+}
+
+async function openPayoutSettings(){
+  if(!state.user)return
+  var btn=document.getElementById('payout-settings-btn')
+  var prevText=btn.textContent
+  btn.textContent='Connecting…'
+  btn.disabled=true
+  try{localStorage.setItem('opsdepot_connect_return','payout-settings')}catch(e){}
+  try{
+    var {data:{session}}=await sb.auth.getSession()
+    var res=await fetch('https://pxbddzaqhejrgxrudesv.supabase.co/functions/v1/connect-onboarding',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token}
+    })
+    var data=await res.json()
+    if(data.url){
+      window.location.href=data.url
+      return
+    }
+    if(data.done){
+      if(state.profile){state.profile.stripe_onboarded=true;state.profile.payouts_enabled=true}
+      renderPayoutSettingsBox()
+    }else{
+      alert(data.error||'Could not start payout setup. Please try again.')
+    }
+  }catch(e){
+    alert('Could not start payout setup. Please try again.')
+  }
+  btn.textContent=prevText
+  btn.disabled=false
+}
 function updateSellStep(){
   var s=state.sellStep
   document.getElementById('sell-step1').style.display=s===1?'block':'none'
   document.getElementById('sell-step2').style.display=s===2?'flex':'none'
   document.getElementById('sell-step3').style.display=s===3?'flex':'none'
   document.getElementById('sell-progress').style.width=(s/3*100)+'%'
-  var labels=['Step 1 of 3 — Item details','Step 2 of 3 — Pricing & postage','Step 3 of 3 — Payout & publish']
+  var editing=!!state.editingListingId
+  var labels=['Step 1 of 3 — Item details','Step 2 of 3 — Pricing & postage',editing?'Step 3 of 3 — Review & save':'Step 3 of 3 — Payout & publish']
   document.getElementById('sell-step-label').textContent=labels[s-1]
-  var nextLabels=['Next — pricing','Next — payout details',(s===3&&!sellerOnboarded())?'Connect payout account':'Post listing']
+  var step3Label=(s===3&&!sellerOnboarded())?'Connect payout account':(editing?'Save changes':'Post listing')
+  var nextLabels=['Next — pricing','Next — payout details',step3Label]
   document.getElementById('sell-next-btn').textContent=nextLabels[s-1]
   document.getElementById('sell-back-btn').style.opacity=s===1?'0.3':'1'
   document.getElementById('sell-back-btn').disabled=s===1
@@ -1442,7 +1594,8 @@ function renderMyListings(rows){
         '<div style="flex:1;min-width:0"><div class="request-name">'+escapeHtml(l.title)+'</div><div class="request-desc">£'+l.price+' · '+(sold?'Sold':'Active')+'</div></div>'+
       '</div>'+
       '<div class="action-row">'+
-        (sold?'<button class="btn-approve" disabled style="opacity:.5">Sold</button>':'<button class="btn-approve" onclick="markListingSold(\''+l.id+'\')">Mark as sold</button>')+
+        '<button class="btn-decline" onclick="editListing(\''+l.id+'\')">Edit</button>'+
+        (sold?'<button class="btn-approve" disabled style="opacity:.5">Sold</button>':'<button class="btn-approve" onclick="markListingSold(\''+l.id+'\')">Mark sold</button>')+
         '<button class="btn-decline" style="color:#c0392b;border-color:#f09595" onclick="deleteMyListing(\''+l.id+'\')">Delete</button>'+
       '</div>'+
     '</div>'
@@ -1466,6 +1619,100 @@ async function deleteMyListing(id){
     loadMyListings()
     loadListings()
   }catch(e){alert('Could not delete listing. Please try again.')}
+}
+
+/* ── ORDER HISTORY ── */
+function orderStatusBadge(status){
+  var map={pending:'badge-used-good',paid:'badge-new',shipped:'badge-new',completed:'badge-new',cancelled:'badge-used-fair',refunded:'badge-used-fair'}
+  return map[status]||'badge-used-good'
+}
+function orderStatusLabel(status){
+  var map={pending:'Payment pending',paid:'Paid',shipped:'Shipped',completed:'Completed',cancelled:'Cancelled',refunded:'Refunded'}
+  return map[status]||status
+}
+function formatOrderDate(dateStr){
+  var d=new Date(dateStr)
+  return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})
+}
+async function loadOrderHistory(){
+  var wrap=document.getElementById('order-history-list')
+  if(!state.user){wrap.innerHTML='';return}
+  wrap.innerHTML='<div style="padding:2rem;text-align:center;color:#555;font-size:14px">Loading…</div>'
+  try{
+    var {data,error}=await sb.from('orders')
+      .select('*')
+      .or('buyer_id.eq.'+state.user.id+',seller_id.eq.'+state.user.id)
+      .order('created_at',{ascending:false})
+    if(error)throw error
+    renderOrderHistory(data||[])
+  }catch(e){
+    wrap.innerHTML='<div class="empty-state"><p>Could not load your order history. Please try again.</p></div>'
+  }
+}
+function renderOrderHistory(rows){
+  var wrap=document.getElementById('order-history-list')
+  if(!rows.length){
+    wrap.innerHTML='<div class="empty-state"><p>No orders yet. Purchases and sales will show up here once they happen.</p></div>'
+    return
+  }
+  wrap.innerHTML=rows.map(function(o){
+    var isBuyer=o.buyer_id===state.user.id
+    var roleLabel=isBuyer?'Bought':'Sold'
+    return '<div class="request-card">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">'+
+        '<div style="flex:1;min-width:0"><div class="request-name">'+escapeHtml(o.item_title||'Item')+'</div>'+
+        '<div class="request-desc">'+roleLabel+' · £'+Number(o.total).toFixed(2)+' · '+formatOrderDate(o.created_at)+'</div></div>'+
+        '<span class="badge '+orderStatusBadge(o.status)+'">'+orderStatusLabel(o.status)+'</span>'+
+      '</div>'+
+    '</div>'
+  }).join('')
+}
+
+function resetSellForm(){
+  document.getElementById('sell-title').value=''
+  document.getElementById('sell-cat').value=''
+  document.getElementById('sell-desc').value=''
+  document.getElementById('sell-price').value=''
+  document.getElementById('sell-weight').value=''
+  state.sellCond='new'
+  document.querySelectorAll('.cond-btn').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-cond')==='new')})
+  state.sellPhotos=[]
+  renderPhotoSlots()
+  if(document.getElementById('sell-visibility'))document.getElementById('sell-visibility').value='active'
+}
+
+function startNewListing(){
+  state.editingListingId=null
+  state.sellStep=1
+  resetSellForm()
+  document.getElementById('sell-header-title').textContent='Create listing'
+  showScreen('screen-sell')
+  updateSellStep()
+}
+
+async function editListing(id){
+  try{
+    var {data,error}=await sb.from('listings').select('*').eq('id',id).maybeSingle()
+    if(error)throw error
+    if(!data){alert('Could not load this listing.');return}
+    state.editingListingId=id
+    state.sellStep=1
+    document.getElementById('sell-title').value=data.title||''
+    document.getElementById('sell-cat').value=data.category||''
+    document.getElementById('sell-desc').value=data.description||''
+    document.getElementById('sell-price').value=data.price||''
+    document.getElementById('sell-weight').value=data.weight_kg||''
+    state.sellCond=data.condition||'new'
+    document.querySelectorAll('.cond-btn').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-cond')===state.sellCond)})
+    state.sellPhotos=(data.photos||[]).map(function(url){return {url:url}})
+    renderPhotoSlots()
+    if(document.getElementById('sell-visibility'))document.getElementById('sell-visibility').value=data.status==='draft'?'draft':'active'
+    document.getElementById('sell-header-title').textContent='Edit listing'
+    showScreen('screen-sell')
+    updateSellStep()
+  }catch(e){
+    alert('Could not load this listing. Please try again.')
+  }
 }
 
 /* ── MESSAGING ── */
@@ -1638,6 +1885,9 @@ async function showOrderResult(sessionId){
 }
 
 async function finishConnectReturn(){
+  var returnTo='sell'
+  try{returnTo=localStorage.getItem('opsdepot_connect_return')||'sell'}catch(e){}
+  try{localStorage.removeItem('opsdepot_connect_return')}catch(e){}
   try{
     var {data:{session}}=await sb.auth.getSession()
     var res=await fetch('https://pxbddzaqhejrgxrudesv.supabase.co/functions/v1/connect-onboarding',{
@@ -1654,6 +1904,10 @@ async function finishConnectReturn(){
       state.profile.payouts_enabled=true
     }
   }catch(e){}
+  if(returnTo==='payout-settings'){
+    showScreen('screen-payout-settings')
+    return
+  }
   restoreSellDraft()
   showScreen('screen-sell')
   updateSellStep()
