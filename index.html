@@ -34,7 +34,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
 .status-bar{font-size:11px;padding:10px 18px 6px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
 
 /* ── SHARED INNER HEADER (hero3) ── */
-.inner-header{background:url('images/hero3.png') center/cover no-repeat #1a3a1a;padding:44px 16px 16px;flex-shrink:0;display:flex;align-items:flex-start;justify-content:space-between}
+.inner-header{background:url('images/hero-grey-plain.png') center/cover no-repeat #1a3a1a;padding:44px 16px 16px;flex-shrink:0;display:flex;align-items:flex-start;justify-content:space-between}
 .back-btn{background:rgba(255,255,255,0.2);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;border-radius:50%;width:42px;height:42px;flex-shrink:0}
 
 /* ── LOGIN ── */
@@ -77,7 +77,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
 
 /* ── HOME SCREEN ── */
 #screen-home{background:#111;position:relative}
-.home-header{background:url('images/hero3.png') center/cover no-repeat #1a3a1a;padding:40px 14px 14px;flex-shrink:0}
+.home-header{background:url('images/hero-grey-plain.png') center/cover no-repeat #1a3a1a;padding:40px 14px 14px;flex-shrink:0}
 .search-wrap{padding:0 0 10px}
 .search-inner{display:flex;align-items:center;background:rgba(255,255,255,0.92);border-radius:25px;padding:0 16px;gap:10px}
 .search-inner svg{color:#666;flex-shrink:0;width:18px;height:18px}
@@ -162,7 +162,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
 .sell-body::-webkit-scrollbar{display:none}
 .progress-bar{height:4px;background:#222;flex-shrink:0}
 .progress-fill{height:100%;background:var(--tan);transition:width .3s}
-.step-label{background:var(--black);padding:6px 16px 10px;font-size:12px;color:#888;flex-shrink:0}
+.step-label{background:var(--black);padding:6px 16px 10px;font-size:15px;color:#aaa;flex-shrink:0}
 .cond-row{display:flex;gap:8px}
 .cond-btn{flex:1;padding:12px 4px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;text-align:center;cursor:pointer;background:#f8f8f8;color:#555;font-family:var(--font);font-weight:500}
 .cond-btn.active{border-color:var(--tan);background:var(--tan);color:#fff}
@@ -249,15 +249,18 @@ html,body{height:100%;background:#111;font-family:var(--font)}
 .menu-item:active{background:#f5f5f5}
 
 /* ── EMPTY STATE ── */
-.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:2rem;text-align:center;color:#555;background:#fff}
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:2rem;text-align:center;color:#555;background:#fff;border-radius:var(--radius)}
 .empty-state p{font-size:14px;line-height:1.6}
 
 /* ── REQUEST SCREEN ── */
 .request-screen{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;background:#fff}
 
 /* ── CONVERSATIONS ── */
-.conv-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer}
+.messages-wrap{flex:1;overflow-y:auto;padding:8px;background:url('images/camo.png') center/cover fixed #f0ede8}
+#conversations-list{border-radius:var(--radius);overflow:hidden}
+.conv-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;background:#fff}
 .conv-row:active{background:#f8f8f8}
+.conv-row:last-child{border-bottom:none}
 .conv-avatar{width:44px;height:44px;border-radius:50%;background:var(--tan);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;flex-shrink:0}
 .conv-info{flex:1;min-width:0}
 .conv-top{display:flex;justify-content:space-between;gap:8px}
@@ -349,7 +352,10 @@ html,body{height:100%;background:#111;font-family:var(--font)}
   <div class="request-screen">
     <div class="field"><label>Full name</label><input type="text" id="ar-name" placeholder="Your full name"/></div>
     <div class="field"><label>Email address</label><input type="email" id="ar-email" placeholder="you@example.com"/></div>
-    <div class="field"><label>Freelance or company</label><select id="ar-type"><option value="">Select...</option><option>Freelance operative</option><option>Company employee</option><option>Former military / police</option></select></div>
+    <div class="field"><label>Freelance or company</label><select id="ar-type"><option value="">Select...</option><option>Freelance operative</option><option>Company employee</option></select></div>
+    <div class="field"><label>Background</label>
+      <div class="cond-row"><button type="button" class="cond-btn" id="ar-ex-mil-btn" onclick="toggleExMilitary()">Former military / police</button></div>
+    </div>
     <div class="field"><label>SIA licence number (optional)</label><input type="text" id="ar-sia" placeholder="e.g. 1234567890123456"/></div>
     <div class="field"><label>Tell us about your background</label><textarea id="ar-desc" placeholder="Brief description of your experience..."></textarea></div>
     <div class="err" id="ar-err"></div>
@@ -480,7 +486,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
           </div>
         </div>
         <div class="field"><label>Description</label><textarea id="sell-desc" placeholder="Describe the item — model, age, condition, accessories, any faults..."></textarea></div>
-        <div class="field"><label>Photos (up to 6)</label>
+        <div class="field"><label>Photos (up to 6) <span style="font-weight:400;color:#777">(include clear shots of branding, serial numbers and any damage or wear — this helps buyers trust the listing)</span></label>
           <input type="file" id="photo-file-input" accept="image/*" style="display:none" onchange="handlePhotoFile(event)"/>
           <div class="photo-row" id="photo-row"></div>
         </div>
@@ -490,8 +496,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
       <div class="field"><label>Asking price (£)</label><input type="number" id="sell-price" placeholder="0.00" min="0" oninput="calcBreakdown()"/></div>
       <div class="breakdown" id="sell-breakdown">
         <div class="breakdown-row"><span class="breakdown-label">Your asking price</span><span class="breakdown-val" id="bd-price">—</span></div>
-        <div class="breakdown-row"><span class="breakdown-label">Platform commission (5%)</span><span class="breakdown-val" id="bd-comm">—</span></div>
-        <div class="breakdown-row"><span class="breakdown-label">Stripe processing fee</span><span class="breakdown-val" id="bd-stripe">—</span></div>
+        <div class="breakdown-row"><span class="breakdown-label">Platform commission (6.5%)</span><span class="breakdown-val" id="bd-comm">—</span></div>
         <div class="breakdown-row"><span class="breakdown-label">You receive</span><span class="breakdown-val" id="bd-receive">—</span></div>
       </div>
       <div class="field"><label>Parcel weight (kg)</label><input type="number" id="sell-weight" placeholder="e.g. 0.5" min="0" step="0.1"/></div>
@@ -500,7 +505,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
         <div class="field" style="flex:1"><label>Width (cm)</label><input type="number" placeholder="cm"/></div>
         <div class="field" style="flex:1"><label>Height (cm)</label><input type="number" placeholder="cm"/></div>
       </div>
-      <div class="info-box"><p>Weight and dimensions generate accurate courier quotes for buyers, calculated from your registered address. The Ops Depot charges <strong>5% commission</strong> on completed sales.</p></div>
+      <div class="info-box"><p>Weight and dimensions generate accurate courier quotes for buyers, calculated from your registered address. The Ops Depot charges <strong>6.5% commission</strong> on completed sales.</p></div>
     </div>
     <div id="sell-step3" style="display:none;flex-direction:column;gap:14px">
       <div class="info-box" id="payout-status-box"><p>Checking your payout account…</p></div>
@@ -598,7 +603,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
     <span style="color:#fff;font-size:16px;font-weight:600">Messages</span>
     <div style="width:42px"></div>
   </div>
-  <div id="conversations-list" style="flex:1;overflow-y:auto"></div>
+  <div class="messages-wrap"><div id="conversations-list"></div></div>
   <div class="bottom-nav">
     <button class="nav-item" onclick="showScreen('screen-home')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>Browse</button>
     <button class="nav-item" onclick="showScreen('screen-saved')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Saved</button>
@@ -632,7 +637,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
     <button class="back-btn" onclick="showScreen('screen-profile')">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>
     </button>
-    <span style="color:#fff;font-size:16px;font-weight:600">My listings</span>
+    <span style="color:#fff;font-size:16px;font-weight:600" id="my-listings-title">My listings</span>
     <div style="width:42px"></div>
   </div>
   <div class="profile-body" id="my-listings-list"></div>
@@ -682,13 +687,13 @@ html,body{height:100%;background:#111;font-family:var(--font)}
       <div class="profile-meta">Member since 2025 · Verified operative</div>
     </div>
     <div class="profile-stats">
-      <div class="profile-stat" style="cursor:pointer" onclick="showScreen('screen-my-listings')"><div class="profile-stat-val" id="profile-stat-sold">—</div><div class="profile-stat-label">Sold</div></div>
+      <div class="profile-stat" style="cursor:pointer" onclick="showSoldListings()"><div class="profile-stat-val" id="profile-stat-sold">—</div><div class="profile-stat-label">Sold</div></div>
       <div class="profile-stat" style="cursor:pointer" onclick="showScreen('screen-order-history')"><div class="profile-stat-val" id="profile-stat-bought">—</div><div class="profile-stat-label">Bought</div></div>
       <div class="profile-stat" style="cursor:pointer" onclick="showScreen('screen-saved')"><div class="profile-stat-val" id="profile-stat-saved">—</div><div class="profile-stat-label">Saved</div></div>
     </div>
     <div class="section-label">My account</div>
     <div class="menu-list">
-      <div class="menu-item" onclick="showScreen('screen-my-listings')">My listings <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
+      <div class="menu-item" onclick="showAllListings()">My listings <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
       <div class="menu-item" onclick="showScreen('screen-order-history')">Order history <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
       <div class="menu-item" onclick="showScreen('screen-payout-settings')">Payout settings <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
       <div class="menu-item">Change password <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></div>
@@ -769,7 +774,7 @@ const SUPABASE_URL='https://pxbddzaqhejrgxrudesv.supabase.co'
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4YmRkemFxaGVqcmd4cnVkZXN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxODg4MjgsImV4cCI6MjA5ODc2NDgyOH0.zBWxEwHqNlYEETBQ3aTxaSftJtZ7zNQtohxgEhrQicE'
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
 
-var state={user:null,profile:null,listings:[],saved:{},activeCat:'All',activeListing:null,selectedCourier:null,sellStep:1,sellCond:'new',sellPhotos:[],editingListingId:null,conversations:[],activeConversation:null}
+var state={user:null,profile:null,listings:[],saved:{},activeCat:'All',activeListing:null,selectedCourier:null,sellStep:1,sellCond:'new',sellPhotos:[],editingListingId:null,conversations:[],activeConversation:null,myListingsFilter:'all'}
 var MAX_PHOTOS=6
 var chatChannel=null
 
@@ -962,16 +967,21 @@ async function syncProfile(){
   }catch(e){console.error('syncProfile error:',e);state.profile=null}
 }
 
+function toggleExMilitary(){
+  document.getElementById('ar-ex-mil-btn').classList.toggle('active')
+}
 async function handleAccessRequest(){
   var name=document.getElementById('ar-name').value.trim()
   var email=document.getElementById('ar-email').value.trim()
   var type=document.getElementById('ar-type').value
+  var exMilitary=document.getElementById('ar-ex-mil-btn').classList.contains('active')
   var sia=document.getElementById('ar-sia').value.trim()
   var desc=document.getElementById('ar-desc').value.trim()
   if(!name||!email||!type||!desc){showErr('ar-err','Please fill in all required fields.');return}
   try{
-    var {error}=await sb.from('access_requests').insert({full_name:name,email,company_or_freelance:type,sia_licence:sia,description:desc,status:'pending'})
+    var {error}=await sb.from('access_requests').insert({full_name:name,email,company_or_freelance:type,ex_military_police:exMilitary,sia_licence:sia,description:desc,status:'pending'})
     if(error)throw error
+    document.getElementById('ar-ex-mil-btn').classList.remove('active')
     showScreen('screen-login')
     alert('Request submitted. You will hear from us within 48 hours.')
   }catch(e){showErr('ar-err','Submission failed. Please try again.')}
@@ -1231,10 +1241,9 @@ function calcBreakdown(){
   var bd=document.getElementById('sell-breakdown')
   if(!price||price<=0){bd.style.display='none';return}
   bd.style.display='flex';bd.style.flexDirection='column'
-  var comm=price*0.05,stripe=price*0.014+0.20,receive=price-comm-stripe
+  var comm=price*0.065,receive=price-comm
   document.getElementById('bd-price').textContent='£'+price.toFixed(2)
   document.getElementById('bd-comm').textContent='-£'+comm.toFixed(2)
-  document.getElementById('bd-stripe').textContent='-£'+stripe.toFixed(2)
   document.getElementById('bd-receive').textContent='£'+Math.max(0,receive).toFixed(2)
 }
 
@@ -1319,7 +1328,30 @@ async function connectPayoutAccount(){
   btn.disabled=false
 }
 
+function validateSellStep(step){
+  if(step===1){
+    var title=document.getElementById('sell-title').value.trim()
+    var cat=document.getElementById('sell-cat').value
+    var desc=document.getElementById('sell-desc').value.trim()
+    var photoCount=state.sellPhotos.filter(function(p){return p.url}).length
+    if(!title)return 'Please enter an item title.'
+    if(!cat)return 'Please select a category.'
+    if(!desc)return 'Please add a description.'
+    if(!photoCount)return 'Please add at least one photo.'
+    return null
+  }
+  if(step===2){
+    var price=parseFloat(document.getElementById('sell-price').value)
+    var weight=parseFloat(document.getElementById('sell-weight').value)
+    if(!price||price<=0)return 'Please enter an asking price.'
+    if(!weight||weight<=0)return 'Please enter the parcel weight.'
+    return null
+  }
+  return null
+}
 async function sellNext(){
+  var validationError=validateSellStep(state.sellStep)
+  if(validationError){alert(validationError);return}
   if(state.sellStep===3){
     if(!sellerOnboarded()){
       await connectPayoutAccount()
@@ -1565,8 +1597,18 @@ function timeAgo(dateStr){
 }
 
 /* ── MY LISTINGS ── */
+function showAllListings(){
+  state.myListingsFilter='all'
+  showScreen('screen-my-listings')
+}
+function showSoldListings(){
+  state.myListingsFilter='sold'
+  showScreen('screen-my-listings')
+}
 async function loadMyListings(){
   var wrap=document.getElementById('my-listings-list')
+  var titleEl=document.getElementById('my-listings-title')
+  if(titleEl)titleEl.textContent=state.myListingsFilter==='sold'?'Sold listings':'My listings'
   if(!state.user){wrap.innerHTML='';return}
   wrap.innerHTML='<div style="padding:2rem;text-align:center;color:#555;font-size:14px">Loading…</div>'
   try{
@@ -1580,8 +1622,9 @@ async function loadMyListings(){
 
 function renderMyListings(rows){
   var wrap=document.getElementById('my-listings-list')
+  if(state.myListingsFilter==='sold')rows=rows.filter(function(l){return l.status==='sold'})
   if(!rows.length){
-    wrap.innerHTML='<div class="empty-state"><p>You haven\'t listed anything yet. Tap Sell to create your first listing.</p></div>'
+    wrap.innerHTML='<div class="empty-state"><p>'+(state.myListingsFilter==='sold'?"You haven't sold anything yet.":"You haven't listed anything yet. Tap Sell to create your first listing.")+'</p></div>'
     return
   }
   wrap.innerHTML=rows.map(function(l){
