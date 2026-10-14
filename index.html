@@ -914,10 +914,14 @@ async function handleRegister(){
   var pw=document.getElementById('reg-pw').value
   if(!code||!callsign||!address1||!postcode||!email||!pw){showErr('reg-err','Please fill in all fields.');return}
   if(pw.length<8){showErr('reg-err','Password must be at least 8 characters.');return}
+  try{
+    var {data:codeOk,error:codeErr}=await sb.rpc('check_invite_code',{p_code:code})
+    if(codeErr||!codeOk){showErr('reg-err','That invite code is invalid or has already been used.');return}
+  }catch(e){showErr('reg-err','Could not verify invite code. Please try again.');return}
   var city=await lookupCity(postcode)
   if(!city){showErr('reg-err','Please enter a valid UK postcode.');return}
   try{
-    var {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{callsign,address_line1:address1,postcode,city}}})
+    var {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{callsign,address_line1:address1,postcode,city,invite_code:code}}})
     if(error)throw error
     if(data.session){
       state.user=data.user
@@ -964,6 +968,9 @@ async function syncProfile(){
       country:'GB'
     }).select().single()
     state.profile=insertRes.data||null
+    if(meta.invite_code){
+      try{await sb.rpc('redeem_invite_code',{p_code:meta.invite_code})}catch(e){console.error('redeem_invite_code error:',e)}
+    }
   }catch(e){console.error('syncProfile error:',e);state.profile=null}
 }
 
@@ -1407,7 +1414,7 @@ async function sellNext(){
   }
   state.sellStep++;updateSellStep()
 }
-function sellPrev(){if(state.sellStep===1)return;state.sellStep--;updateSellStep()}
+function sellPrev(){if(state.sellStep===1){showScreen('screen-home');return}state.sellStep--;updateSellStep()}
 function renderPayoutStatus(){
   var box=document.getElementById('payout-status-box')
   if(!box)return
@@ -1495,8 +1502,8 @@ function updateSellStep(){
   var step3Label=(s===3&&!sellerOnboarded())?'Connect payout account':(editing?'Save changes':'Post listing')
   var nextLabels=['Next — pricing','Next — payout details',step3Label]
   document.getElementById('sell-next-btn').textContent=nextLabels[s-1]
-  document.getElementById('sell-back-btn').style.opacity=s===1?'0.3':'1'
-  document.getElementById('sell-back-btn').disabled=s===1
+  document.getElementById('sell-back-btn').style.opacity='1'
+  document.getElementById('sell-back-btn').disabled=false
   if(s===2)calcBreakdown()
   if(s===3)renderPayoutStatus()
 }
