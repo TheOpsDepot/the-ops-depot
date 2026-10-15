@@ -51,6 +51,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--tan);background:#fff}
 .field input::placeholder,.field textarea::placeholder{color:#999}
 .field textarea{resize:none;height:90px;line-height:1.5}
+#sell-desc{height:170px}
 .pw-wrap{position:relative}
 .pw-wrap input{padding-right:60px}
 .pw-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#555;font-size:14px;font-weight:600;font-family:var(--font);padding:4px}
@@ -171,6 +172,18 @@ html,body{height:100%;background:#111;font-family:var(--font)}
 .photo-slot{width:76px;height:76px;border:2px dashed var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#999;font-size:11px;font-weight:500;flex-shrink:0;position:relative}
 .photo-slot.photo-filled{border-style:solid;background-size:cover;background-position:center}
 .photo-remove{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#111;color:#fff;border:none;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.photo-editor{position:fixed;inset:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:#000;z-index:500;display:flex;flex-direction:column}
+.photo-editor-header{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 10px;flex-shrink:0}
+.photo-editor-header span{color:#fff;font-size:15px;font-weight:600}
+.photo-editor-header button{background:none;border:none;color:#fff;font-size:15px;font-family:var(--font);cursor:pointer;padding:4px;display:flex;align-items:center}
+.photo-editor-stage{position:relative;flex:1;overflow:hidden;touch-action:none;background:#000}
+.photo-editor-img{position:absolute;top:50%;left:50%;max-width:none;max-height:none;transform-origin:center center;user-select:none;-webkit-user-drag:none}
+.photo-editor-mask{position:absolute;top:50%;left:50%;width:280px;height:280px;transform:translate(-50%,-50%);box-shadow:0 0 0 2000px rgba(0,0,0,.6);border:1.5px solid rgba(255,255,255,.85);border-radius:8px;pointer-events:none}
+.photo-editor-controls{display:flex;align-items:center;gap:10px;padding:18px 20px;flex-shrink:0}
+.photo-editor-controls input[type="range"]{flex:1}
+.photo-editor-done{margin:0 16px 20px;width:auto}
+.desc-wordcount{position:absolute;right:8px;bottom:8px;font-size:11px;color:#999;background:rgba(255,255,255,.92);padding:2px 7px;border-radius:6px;pointer-events:none}
+.desc-wordcount.desc-wordcount-max{color:#c0392b;font-weight:600}
 .breakdown{border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;display:none}
 .breakdown-row{display:flex;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border);font-size:14px}
 .breakdown-row:last-child{border-bottom:none;font-weight:700;font-size:15px}
@@ -438,7 +451,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
     <div class="total-box"><span class="total-label">Total to pay</span><span class="total-val" id="detail-total">—</span></div>
     <div class="protect-box">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;color:#555"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <p>Buyer protection included. Payment held by Stripe until you confirm delivery.</p>
+      <p>Buyer protection included. Payments are processed securely through Stripe.</p>
     </div>
     <div style="height:80px"></div>
   </div>
@@ -485,8 +498,13 @@ html,body{height:100%;background:#111;font-family:var(--font)}
             <button class="cond-btn" data-cond="used-fair" onclick="setCond(this,'used-fair')">Used — fair</button>
           </div>
         </div>
-        <div class="field"><label>Description</label><textarea id="sell-desc" placeholder="Describe the item — model, age, condition, accessories, any faults..."></textarea></div>
-        <div class="field"><label>Photos (up to 6) <span style="font-weight:400;color:#777">(include clear shots of branding, serial numbers and any damage or wear — this helps buyers trust the listing)</span></label>
+        <div class="field"><label>Description</label>
+          <div style="position:relative">
+            <textarea id="sell-desc" placeholder="Describe the item — model, age, condition, accessories, any faults..." oninput="updateDescWordCount()"></textarea>
+            <div class="desc-wordcount" id="desc-wordcount">1000 words left</div>
+          </div>
+        </div>
+        <div class="field"><label>Photos (up to 8) <span style="font-weight:400;color:#777">(include clear shots of branding, serial numbers and any damage or wear — this helps buyers trust the listing)</span></label>
           <input type="file" id="photo-file-input" accept="image/*" style="display:none" onchange="handlePhotoFile(event)"/>
           <div class="photo-row" id="photo-row"></div>
         </div>
@@ -496,16 +514,29 @@ html,body{height:100%;background:#111;font-family:var(--font)}
       <div class="field"><label>Asking price (£)</label><input type="number" id="sell-price" placeholder="0.00" min="0" oninput="calcBreakdown()"/></div>
       <div class="breakdown" id="sell-breakdown">
         <div class="breakdown-row"><span class="breakdown-label">Your asking price</span><span class="breakdown-val" id="bd-price">—</span></div>
-        <div class="breakdown-row"><span class="breakdown-label">Platform commission (6.5%)</span><span class="breakdown-val" id="bd-comm">—</span></div>
+        <div class="breakdown-row" style="align-items:flex-start"><span class="breakdown-label">Platform + card fee (6.5%)<br><span style="font-size:11px;color:#777;font-weight:400">One combined fee — nothing else comes off your sale</span></span><span class="breakdown-val" id="bd-comm">—</span></div>
         <div class="breakdown-row"><span class="breakdown-label">You receive</span><span class="breakdown-val" id="bd-receive">—</span></div>
       </div>
-      <div class="field"><label>Parcel weight (kg)</label><input type="number" id="sell-weight" placeholder="e.g. 0.5" min="0" step="0.1"/></div>
-      <div style="display:flex;gap:8px">
-        <div class="field" style="flex:1"><label>Length (cm)</label><input type="number" placeholder="cm"/></div>
-        <div class="field" style="flex:1"><label>Width (cm)</label><input type="number" placeholder="cm"/></div>
-        <div class="field" style="flex:1"><label>Height (cm)</label><input type="number" placeholder="cm"/></div>
+      <div class="field"><label>Postage</label>
+        <div class="cond-row">
+          <button type="button" class="cond-btn active" data-ship="evri" onclick="setShipMode(this,'evri')">Use Evri (automatic)</button>
+          <button type="button" class="cond-btn" data-ship="own" onclick="setShipMode(this,'own')">I'll arrange my own</button>
+        </div>
       </div>
-      <div class="info-box"><p>Weight and dimensions generate accurate courier quotes for buyers, calculated from your registered address. The Ops Depot charges <strong>6.5% commission</strong> on completed sales.</p></div>
+      <div id="ship-evri-fields" style="display:flex;flex-direction:column;gap:14px">
+        <div class="field"><label>Parcel weight (kg)</label><input type="number" id="sell-weight" placeholder="e.g. 0.5" min="0" step="0.1"/></div>
+        <div style="display:flex;gap:8px">
+          <div class="field" style="flex:1"><label>Length (cm)</label><input type="number" id="sell-length" placeholder="cm" min="0"/></div>
+          <div class="field" style="flex:1"><label>Width (cm)</label><input type="number" id="sell-width" placeholder="cm" min="0"/></div>
+          <div class="field" style="flex:1"><label>Height (cm)</label><input type="number" id="sell-height" placeholder="cm" min="0"/></div>
+        </div>
+        <div class="info-box"><p>Weight and dimensions generate an accurate Evri courier quote for buyers, calculated from your registered address.</p></div>
+      </div>
+      <div id="ship-own-fields" style="display:none;flex-direction:column;gap:14px">
+        <div class="field"><label>Your postage price (£)</label><input type="number" id="sell-own-postage" placeholder="e.g. 4.50" min="0" step="0.01"/></div>
+        <div class="info-box"><p>You'll arrange postage yourself and mark the order as dispatched once it's sent. The buyer pays this fixed amount for postage, on top of your asking price.</p></div>
+      </div>
+      <div class="info-box"><p>The Ops Depot charges <strong>6.5% commission</strong> on completed sales — this covers secure card payment processing as well as running the platform, so there's no separate or hidden deduction on top.</p></div>
     </div>
     <div id="sell-step3" style="display:none;flex-direction:column;gap:14px">
       <div class="info-box" id="payout-status-box"><p>Checking your payout account…</p></div>
@@ -516,6 +547,27 @@ html,body{height:100%;background:#111;font-family:var(--font)}
     <button class="btn-back-sell" id="sell-back-btn" onclick="sellPrev()">Back</button>
     <button class="btn-next-sell" id="sell-next-btn" onclick="sellNext()">Next — pricing</button>
   </div>
+</div>
+
+<!-- ══ PHOTO EDITOR (crop/rotate overlay shown after picking a photo) ══ -->
+<div id="photo-editor" class="photo-editor" style="display:none">
+  <div class="photo-editor-header">
+    <button type="button" onclick="cancelPhotoEdit()">Cancel</button>
+    <span>Adjust photo</span>
+    <button type="button" onclick="rotatePhotoEdit(90)" title="Rotate">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 12a9 9 0 1 1-3.5-7.1M21 4v5h-5"/></svg>
+    </button>
+  </div>
+  <div class="photo-editor-stage" id="photo-editor-stage">
+    <img id="photo-editor-img" class="photo-editor-img" draggable="false"/>
+    <div class="photo-editor-mask"></div>
+  </div>
+  <div class="photo-editor-controls">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input type="range" id="photo-editor-zoom" min="1" max="4" step="0.01" value="1" oninput="onPhotoZoomSlider(this.value)"/>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+  </div>
+  <button type="button" class="btn btn-primary photo-editor-done" onclick="confirmPhotoEdit()">Use photo</button>
 </div>
 
 <!-- ══ CHECKOUT ══ -->
@@ -559,7 +611,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
   <div class="success-screen">
     <div class="success-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2d6a2d" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg></div>
     <div class="success-title" id="order-success-title">Order confirmed</div>
-    <div class="success-sub" id="order-success-sub">Payment held securely by Stripe. The seller has 48 hours to dispatch. You'll receive tracking details by email once shipped.</div>
+    <div class="success-sub" id="order-success-sub">Payment processed securely by Stripe. Your seller has been notified and will be in touch with delivery details.</div>
     <button class="btn btn-primary" style="margin-top:1rem" onclick="showScreen('screen-home')">Back to browse</button>
   </div>
 </div>
@@ -774,8 +826,8 @@ const SUPABASE_URL='https://pxbddzaqhejrgxrudesv.supabase.co'
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4YmRkemFxaGVqcmd4cnVkZXN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxODg4MjgsImV4cCI6MjA5ODc2NDgyOH0.zBWxEwHqNlYEETBQ3aTxaSftJtZ7zNQtohxgEhrQicE'
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
 
-var state={user:null,profile:null,listings:[],saved:{},activeCat:'All',activeListing:null,selectedCourier:null,sellStep:1,sellCond:'new',sellPhotos:[],editingListingId:null,conversations:[],activeConversation:null,myListingsFilter:'all'}
-var MAX_PHOTOS=6
+var state={user:null,profile:null,listings:[],saved:{},activeCat:'All',activeListing:null,selectedCourier:null,sellStep:1,sellCond:'new',sellShipMode:'evri',sellPhotos:[],editingListingId:null,conversations:[],activeConversation:null,myListingsFilter:'all'}
+var MAX_PHOTOS=8
 var chatChannel=null
 
 var CATEGORIES=['All','Surveillance & Imaging','Audio & Listening Devices','Tracking & GPS','Counter-Surveillance / TSCM','Communications & Radio','Power, Storage & Cabling','Vehicle & Transport','Medical & Safety','Covert Ops & Field Equipment','Support & Accessories']
@@ -1106,13 +1158,20 @@ function openListing(id){
     '<span class="meta-chip">📍 '+l.loc+'</span>'+
     '<span class="meta-chip">🕐 '+l.age+'</span>'+
     '<span class="badge '+condClass(l.cond)+'" style="margin-left:4px">'+condLabel(l.cond)+'</span>'
-  document.getElementById('courier-list').innerHTML='<div style="padding:14px;color:#555;font-size:14px">Loading courier rates...</div>'
-  showScreen('screen-detail')
-  getShippingRates(l).then(function(rates){
-    COURIERS=rates
-    state.selectedCourier=rates[0]
-    renderCouriers()
-  })
+  if(l.shipping_mode==='own'){
+    state.selectedCourier={id:'own-postage',name:'Seller-arranged postage',price:Number(l.own_postage_price)||0,eta:'Arranged by the seller'}
+    document.getElementById('courier-list').innerHTML='<div style="padding:14px;color:#555;font-size:14px">This seller arranges their own postage — a fixed £'+state.selectedCourier.price.toFixed(2)+' postage charge applies.</div>'
+    showScreen('screen-detail')
+    updateDetailTotal()
+  }else{
+    document.getElementById('courier-list').innerHTML='<div style="padding:14px;color:#555;font-size:14px">Loading courier rates...</div>'
+    showScreen('screen-detail')
+    getShippingRates(l).then(function(rates){
+      COURIERS=rates
+      state.selectedCourier=rates[0]
+      renderCouriers()
+    })
+  }
 }
 
 function renderCouriers(){
@@ -1215,19 +1274,46 @@ function triggerPhotoUpload(){
   document.getElementById('photo-file-input').click()
 }
 
-async function handlePhotoFile(e){
+// ── Description word count (max 1000 words) ──
+var DESC_MAX_WORDS=1000
+var lastDescValue=''
+function countWords(str){
+  var trimmed=(str||'').trim()
+  if(!trimmed)return 0
+  return trimmed.split(/\s+/).length
+}
+function updateDescWordCount(){
+  var ta=document.getElementById('sell-desc')
+  var el=document.getElementById('desc-wordcount')
+  if(!ta||!el)return
+  var words=countWords(ta.value)
+  if(words>DESC_MAX_WORDS){
+    ta.value=lastDescValue
+    el.textContent='Maximum word count has been reached.'
+    el.classList.add('desc-wordcount-max')
+    return
+  }
+  lastDescValue=ta.value
+  el.textContent=(DESC_MAX_WORDS-words)+' words left'
+  el.classList.remove('desc-wordcount-max')
+}
+
+function handlePhotoFile(e){
   var file=e.target.files[0]
   e.target.value=''
   if(!file)return
   if(!state.user){alert('Please sign in again.');return}
   if(state.sellPhotos.length>=MAX_PHOTOS)return
+  openPhotoEditor(file)
+}
+
+async function uploadPhotoBlob(blob){
   var slotIndex=state.sellPhotos.length
   state.sellPhotos.push({uploading:true})
   renderPhotoSlots()
   try{
-    var ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg'
-    var path=state.user.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext
-    var {error:upErr}=await sb.storage.from('listing-photos').upload(path,file,{cacheControl:'3600',upsert:false})
+    var path=state.user.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.jpg'
+    var {error:upErr}=await sb.storage.from('listing-photos').upload(path,blob,{cacheControl:'3600',upsert:false,contentType:'image/jpeg'})
     if(upErr)throw upErr
     var {data:pub}=sb.storage.from('listing-photos').getPublicUrl(path)
     state.sellPhotos[slotIndex]={url:pub.publicUrl,path:path}
@@ -1236,6 +1322,146 @@ async function handlePhotoFile(e){
     alert('Photo upload failed. Please try again.')
   }
   renderPhotoSlots()
+}
+
+// ── Photo editor: crop (pan/zoom within a fixed square) + 90° rotate ──
+var CROP_SIZE=280
+var OUTPUT_SIZE=1200
+var pe={file:null,naturalW:0,naturalH:0,baseScale:1,userScale:1,offsetX:0,offsetY:0,rotation:0,pointers:{},dragging:false,dragStartX:0,dragStartY:0,dragStartOffX:0,dragStartOffY:0,pinchStartDist:0,pinchStartScale:1}
+
+function openPhotoEditor(file){
+  pe.file=file
+  pe.userScale=1;pe.offsetX=0;pe.offsetY=0;pe.rotation=0;pe.pointers={}
+  var img=document.getElementById('photo-editor-img')
+  var url=URL.createObjectURL(file)
+  img.onload=function(){
+    pe.naturalW=img.naturalWidth
+    pe.naturalH=img.naturalHeight
+    pe.baseScale=CROP_SIZE/Math.min(pe.naturalW,pe.naturalH)
+    img.style.width=(pe.naturalW*pe.baseScale)+'px'
+    img.style.height=(pe.naturalH*pe.baseScale)+'px'
+    document.getElementById('photo-editor-zoom').value='1'
+    renderPhotoEditorTransform()
+  }
+  img.src=url
+  document.getElementById('photo-editor').style.display='flex'
+}
+
+function peEffectiveSize(){
+  var w=pe.naturalW*pe.baseScale*pe.userScale
+  var h=pe.naturalH*pe.baseScale*pe.userScale
+  return (pe.rotation%180===0)?{w:w,h:h}:{w:h,h:w}
+}
+
+function clampPhotoOffset(){
+  var eff=peEffectiveSize()
+  var maxX=Math.max(0,(eff.w-CROP_SIZE)/2)
+  var maxY=Math.max(0,(eff.h-CROP_SIZE)/2)
+  pe.offsetX=Math.max(-maxX,Math.min(maxX,pe.offsetX))
+  pe.offsetY=Math.max(-maxY,Math.min(maxY,pe.offsetY))
+}
+
+function renderPhotoEditorTransform(){
+  clampPhotoOffset()
+  var img=document.getElementById('photo-editor-img')
+  img.style.transform='translate(-50%,-50%) translate('+pe.offsetX+'px,'+pe.offsetY+'px) rotate('+pe.rotation+'deg) scale('+pe.userScale+')'
+}
+
+function rotatePhotoEdit(deg){
+  pe.rotation=(pe.rotation+deg+360)%360
+  renderPhotoEditorTransform()
+}
+
+function onPhotoZoomSlider(val){
+  pe.userScale=parseFloat(val)
+  renderPhotoEditorTransform()
+}
+
+function peDist(a,b){var dx=a.x-b.x,dy=a.y-b.y;return Math.sqrt(dx*dx+dy*dy)}
+
+function peSetupStageEvents(){
+  var stage=document.getElementById('photo-editor-stage')
+  stage.onpointerdown=function(e){
+    stage.setPointerCapture(e.pointerId)
+    pe.pointers[e.pointerId]={x:e.clientX,y:e.clientY}
+    var ids=Object.keys(pe.pointers)
+    if(ids.length===1){
+      pe.dragging=true
+      pe.dragStartX=e.clientX;pe.dragStartY=e.clientY
+      pe.dragStartOffX=pe.offsetX;pe.dragStartOffY=pe.offsetY
+    }else if(ids.length===2){
+      pe.dragging=false
+      var pts=ids.map(function(id){return pe.pointers[id]})
+      pe.pinchStartDist=peDist(pts[0],pts[1])
+      pe.pinchStartScale=pe.userScale
+    }
+  }
+  stage.onpointermove=function(e){
+    if(!pe.pointers[e.pointerId])return
+    pe.pointers[e.pointerId]={x:e.clientX,y:e.clientY}
+    var ids=Object.keys(pe.pointers)
+    if(ids.length===2){
+      var pts=ids.map(function(id){return pe.pointers[id]})
+      var dist=peDist(pts[0],pts[1])
+      if(pe.pinchStartDist>0){
+        var scale=pe.pinchStartScale*(dist/pe.pinchStartDist)
+        pe.userScale=Math.max(1,Math.min(4,scale))
+        document.getElementById('photo-editor-zoom').value=String(pe.userScale)
+        renderPhotoEditorTransform()
+      }
+    }else if(ids.length===1&&pe.dragging){
+      pe.offsetX=pe.dragStartOffX+(e.clientX-pe.dragStartX)
+      pe.offsetY=pe.dragStartOffY+(e.clientY-pe.dragStartY)
+      renderPhotoEditorTransform()
+    }
+  }
+  function peEnd(e){
+    delete pe.pointers[e.pointerId]
+    var ids=Object.keys(pe.pointers)
+    if(ids.length===1){
+      var id=ids[0]
+      pe.dragging=true
+      pe.dragStartX=pe.pointers[id].x;pe.dragStartY=pe.pointers[id].y
+      pe.dragStartOffX=pe.offsetX;pe.dragStartOffY=pe.offsetY
+    }else{
+      pe.dragging=false
+    }
+  }
+  stage.onpointerup=peEnd
+  stage.onpointercancel=peEnd
+  stage.onwheel=function(e){
+    e.preventDefault()
+    pe.userScale=Math.max(1,Math.min(4,pe.userScale-e.deltaY*0.002))
+    document.getElementById('photo-editor-zoom').value=String(pe.userScale)
+    renderPhotoEditorTransform()
+  }
+}
+peSetupStageEvents()
+
+function cancelPhotoEdit(){
+  document.getElementById('photo-editor').style.display='none'
+  pe.file=null
+}
+
+function confirmPhotoEdit(){
+  var img=document.getElementById('photo-editor-img')
+  var canvas=document.createElement('canvas')
+  canvas.width=OUTPUT_SIZE
+  canvas.height=OUTPUT_SIZE
+  var ctx=canvas.getContext('2d')
+  var exportScale=OUTPUT_SIZE/CROP_SIZE
+  ctx.save()
+  ctx.translate(OUTPUT_SIZE/2,OUTPUT_SIZE/2)
+  ctx.translate(pe.offsetX*exportScale,pe.offsetY*exportScale)
+  ctx.rotate(pe.rotation*Math.PI/180)
+  ctx.scale(pe.baseScale*pe.userScale*exportScale,pe.baseScale*pe.userScale*exportScale)
+  ctx.drawImage(img,-pe.naturalW/2,-pe.naturalH/2,pe.naturalW,pe.naturalH)
+  ctx.restore()
+  canvas.toBlob(function(blob){
+    document.getElementById('photo-editor').style.display='none'
+    if(blob)uploadPhotoBlob(blob)
+    pe.file=null
+  },'image/jpeg',0.9)
 }
 
 function removePhoto(i){
@@ -1268,7 +1494,12 @@ function saveSellDraft(){
       cond:state.sellCond,
       desc:document.getElementById('sell-desc').value,
       price:document.getElementById('sell-price').value,
+      shipMode:state.sellShipMode,
       weight:document.getElementById('sell-weight').value,
+      length:document.getElementById('sell-length').value,
+      width:document.getElementById('sell-width').value,
+      height:document.getElementById('sell-height').value,
+      ownPostage:document.getElementById('sell-own-postage').value,
       photos:state.sellPhotos,
       visibility:document.getElementById('sell-visibility')?document.getElementById('sell-visibility').value:'active',
       editingListingId:state.editingListingId
@@ -1285,8 +1516,15 @@ function restoreSellDraft(){
   document.getElementById('sell-title').value=d.title||''
   document.getElementById('sell-cat').value=d.cat||''
   document.getElementById('sell-desc').value=d.desc||''
+  updateDescWordCount()
   document.getElementById('sell-price').value=d.price||''
   document.getElementById('sell-weight').value=d.weight||''
+  document.getElementById('sell-length').value=d.length||''
+  document.getElementById('sell-width').value=d.width||''
+  document.getElementById('sell-height').value=d.height||''
+  document.getElementById('sell-own-postage').value=d.ownPostage||''
+  state.sellShipMode=d.shipMode||'evri'
+  applyShipModeUI()
   if(document.getElementById('sell-visibility'))document.getElementById('sell-visibility').value=d.visibility||'active'
   state.sellCond=d.cond||'new'
   document.querySelectorAll('.cond-btn').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-cond')===state.sellCond)})
@@ -1349,12 +1587,33 @@ function validateSellStep(step){
   }
   if(step===2){
     var price=parseFloat(document.getElementById('sell-price').value)
-    var weight=parseFloat(document.getElementById('sell-weight').value)
     if(!price||price<=0)return 'Please enter an asking price.'
+    if(state.sellShipMode==='own'){
+      var postage=parseFloat(document.getElementById('sell-own-postage').value)
+      if(!postage||postage<=0)return 'Please enter your postage price.'
+      return null
+    }
+    var weight=parseFloat(document.getElementById('sell-weight').value)
+    var length=parseFloat(document.getElementById('sell-length').value)
+    var width=parseFloat(document.getElementById('sell-width').value)
+    var height=parseFloat(document.getElementById('sell-height').value)
     if(!weight||weight<=0)return 'Please enter the parcel weight.'
+    if(!length||length<=0)return 'Please enter the parcel length.'
+    if(!width||width<=0)return 'Please enter the parcel width.'
+    if(!height||height<=0)return 'Please enter the parcel height.'
     return null
   }
   return null
+}
+
+function applyShipModeUI(){
+  document.querySelectorAll('[data-ship]').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-ship')===state.sellShipMode)})
+  document.getElementById('ship-evri-fields').style.display=state.sellShipMode==='evri'?'flex':'none'
+  document.getElementById('ship-own-fields').style.display=state.sellShipMode==='own'?'flex':'none'
+}
+function setShipMode(el,mode){
+  state.sellShipMode=mode
+  applyShipModeUI()
 }
 async function sellNext(){
   var validationError=validateSellStep(state.sellStep)
@@ -1376,7 +1635,12 @@ async function sellNext(){
         condition:state.sellCond,
         description:document.getElementById('sell-desc').value,
         price:parseFloat(document.getElementById('sell-price').value),
-        weight_kg:parseFloat(document.getElementById('sell-weight').value)||null,
+        shipping_mode:state.sellShipMode,
+        weight_kg:state.sellShipMode==='evri'?(parseFloat(document.getElementById('sell-weight').value)||null):null,
+        length_cm:state.sellShipMode==='evri'?(parseFloat(document.getElementById('sell-length').value)||null):null,
+        width_cm:state.sellShipMode==='evri'?(parseFloat(document.getElementById('sell-width').value)||null):null,
+        height_cm:state.sellShipMode==='evri'?(parseFloat(document.getElementById('sell-height').value)||null):null,
+        own_postage_price:state.sellShipMode==='own'?(parseFloat(document.getElementById('sell-own-postage').value)||null):null,
         photos:state.sellPhotos.filter(function(p){return p.url}).map(function(p){return p.url}),
         status:(visibility&&visibility.value==='draft')?'draft':'active'
       }
@@ -1583,6 +1847,8 @@ async function loadListings(){
           length_cm:l.length_cm,
           width_cm:l.width_cm,
           height_cm:l.height_cm,
+          shipping_mode:l.shipping_mode||'evri',
+          own_postage_price:l.own_postage_price,
           photos:l.photos||[]
         }
       })
@@ -1708,22 +1974,71 @@ function renderOrderHistory(rows){
   wrap.innerHTML=rows.map(function(o){
     var isBuyer=o.buyer_id===state.user.id
     var roleLabel=isBuyer?'Bought':'Sold'
+    var trackingBits=[]
+    if(o.courier_service)trackingBits.push(escapeHtml(o.courier_service))
+    if(o.tracking_number)trackingBits.push('Tracking: '+escapeHtml(o.tracking_number))
+    var trackingLine=trackingBits.length?('<div class="request-desc">'+trackingBits.join(' · ')+'</div>'):''
+    var actionsHtml=''
+    if(!isBuyer&&o.status==='paid'){
+      actionsHtml='<div class="action-row"><button class="btn-approve" onclick="markOrderDispatched(\''+o.id+'\')">Mark as dispatched</button></div><div class="request-desc" style="margin-top:4px">Please dispatch within 2 working days of payment.</div>'
+    }else if(isBuyer&&o.status==='shipped'){
+      actionsHtml='<div class="action-row"><button class="btn-approve" onclick="markOrderReceived(\''+o.id+'\')">Mark as received</button></div>'
+    }
     return '<div class="request-card">'+
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">'+
         '<div style="flex:1;min-width:0"><div class="request-name">'+escapeHtml(o.item_title||'Item')+'</div>'+
-        '<div class="request-desc">'+roleLabel+' · £'+Number(o.total).toFixed(2)+' · '+formatOrderDate(o.created_at)+'</div></div>'+
+        '<div class="request-desc">'+roleLabel+' · £'+Number(o.total).toFixed(2)+' · '+formatOrderDate(o.created_at)+'</div>'+
+        trackingLine+
+        '</div>'+
         '<span class="badge '+orderStatusBadge(o.status)+'">'+orderStatusLabel(o.status)+'</span>'+
       '</div>'+
+      actionsHtml+
     '</div>'
   }).join('')
+}
+
+async function markOrderDispatched(id){
+  var tracking=prompt('Tracking number (optional — leave blank if there isn\'t one):','')
+  if(tracking===null)return
+  var courier=prompt('Postage service used, e.g. "Royal Mail 1st Class" (optional):','')
+  if(courier===null)return
+  try{
+    var {error}=await sb.from('orders').update({
+      status:'shipped',
+      dispatched_at:new Date().toISOString(),
+      tracking_number:tracking?tracking.trim():null,
+      courier_service:courier?courier.trim():null
+    }).eq('id',id)
+    if(error)throw error
+    loadOrderHistory()
+  }catch(e){alert('Could not update this order. Please try again.')}
+}
+
+async function markOrderReceived(id){
+  if(!confirm('Mark this order as received? This lets your seller know it arrived safely.'))return
+  try{
+    var {error}=await sb.from('orders').update({
+      status:'completed',
+      received_at:new Date().toISOString()
+    }).eq('id',id)
+    if(error)throw error
+    loadOrderHistory()
+  }catch(e){alert('Could not update this order. Please try again.')}
 }
 
 function resetSellForm(){
   document.getElementById('sell-title').value=''
   document.getElementById('sell-cat').value=''
   document.getElementById('sell-desc').value=''
+  updateDescWordCount()
   document.getElementById('sell-price').value=''
   document.getElementById('sell-weight').value=''
+  document.getElementById('sell-length').value=''
+  document.getElementById('sell-width').value=''
+  document.getElementById('sell-height').value=''
+  document.getElementById('sell-own-postage').value=''
+  state.sellShipMode='evri'
+  applyShipModeUI()
   state.sellCond='new'
   document.querySelectorAll('.cond-btn').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-cond')==='new')})
   state.sellPhotos=[]
@@ -1750,8 +2065,15 @@ async function editListing(id){
     document.getElementById('sell-title').value=data.title||''
     document.getElementById('sell-cat').value=data.category||''
     document.getElementById('sell-desc').value=data.description||''
+    updateDescWordCount()
     document.getElementById('sell-price').value=data.price||''
     document.getElementById('sell-weight').value=data.weight_kg||''
+    document.getElementById('sell-length').value=data.length_cm||''
+    document.getElementById('sell-width').value=data.width_cm||''
+    document.getElementById('sell-height').value=data.height_cm||''
+    document.getElementById('sell-own-postage').value=data.own_postage_price||''
+    state.sellShipMode=data.shipping_mode||'evri'
+    applyShipModeUI()
     state.sellCond=data.condition||'new'
     document.querySelectorAll('.cond-btn').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-cond')===state.sellCond)})
     state.sellPhotos=(data.photos||[]).map(function(url){return {url:url}})
