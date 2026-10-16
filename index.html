@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>The Ops Depot</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://connect-js.stripe.com/v1.0/connect.js" async></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -172,6 +173,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
 .photo-slot{width:76px;height:76px;border:2px dashed var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#999;font-size:11px;font-weight:500;flex-shrink:0;position:relative}
 .photo-slot.photo-filled{border-style:solid;background-size:cover;background-position:center}
 .photo-remove{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#111;color:#fff;border:none;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.photo-main-badge{position:absolute;top:4px;left:4px;background:rgba(0,0,0,.65);color:#fff;font-size:9px;font-weight:600;padding:2px 5px;border-radius:5px;letter-spacing:.3px;text-transform:uppercase;pointer-events:none}
 .photo-editor{position:fixed;inset:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:#000;z-index:500;display:flex;flex-direction:column}
 .photo-editor-header{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 10px;flex-shrink:0}
 .photo-editor-header span{color:#fff;font-size:15px;font-weight:600}
@@ -500,8 +502,8 @@ html,body{height:100%;background:#111;font-family:var(--font)}
         </div>
         <div class="field"><label>Description</label>
           <div style="position:relative">
-            <textarea id="sell-desc" placeholder="Describe the item — model, age, condition, accessories, any faults..." oninput="updateDescWordCount()"></textarea>
-            <div class="desc-wordcount" id="desc-wordcount">1000 words left</div>
+            <textarea id="sell-desc" maxlength="1000" placeholder="Describe the item — model, age, condition, accessories, any faults..." oninput="updateDescWordCount()"></textarea>
+            <div class="desc-wordcount" id="desc-wordcount">1000</div>
           </div>
         </div>
         <div class="field"><label>Photos (up to 8) <span style="font-weight:400;color:#777">(include clear shots of branding, serial numbers and any damage or wear — this helps buyers trust the listing)</span></label>
@@ -540,6 +542,7 @@ html,body{height:100%;background:#111;font-family:var(--font)}
     </div>
     <div id="sell-step3" style="display:none;flex-direction:column;gap:14px">
       <div class="info-box" id="payout-status-box"><p>Checking your payout account…</p></div>
+      <div id="sell-payout-embed"></div>
       <div class="field"><label>Listing visibility</label><select id="sell-visibility"><option value="active">Visible to all members immediately</option><option value="draft">Save as draft</option></select></div>
     </div>
   </div>
@@ -718,7 +721,8 @@ html,body{height:100%;background:#111;font-family:var(--font)}
   </div>
   <div class="profile-body">
     <div class="info-box" id="payout-settings-box"><p>Checking your payout account…</p></div>
-    <button class="btn btn-primary" id="payout-settings-btn" onclick="openPayoutSettings()" style="display:none">Connect payout account</button>
+    <div id="payout-settings-embed"></div>
+    <button class="btn btn-primary" id="payout-settings-btn" onclick="refreshPayoutSettings()" style="display:none">I've finished — check status</button>
   </div>
 </div>
 
@@ -1256,15 +1260,15 @@ function renderPhotoSlots(){
   var row=document.getElementById('photo-row')
   if(!row)return
   var html=''
-  state.sellPhotos.forEach(function(p,i){
-    if(p.uploading){
+  for(var i=0;i<MAX_PHOTOS;i++){
+    var p=state.sellPhotos[i]
+    if(p&&p.uploading){
       html+='<div class="photo-slot" style="color:#999"><span style="font-size:11px">Uploading…</span></div>'
+    }else if(p&&p.url){
+      html+='<div class="photo-slot photo-filled" style="background-image:url(\''+p.url+'\')">'+(i===0?'<span class="photo-main-badge">Main</span>':'')+'<button type="button" class="photo-remove" onclick="event.stopPropagation();removePhoto('+i+')">×</button></div>'
     }else{
-      html+='<div class="photo-slot photo-filled" style="background-image:url(\''+p.url+'\')"><button type="button" class="photo-remove" onclick="event.stopPropagation();removePhoto('+i+')">×</button></div>'
+      html+='<div class="photo-slot" onclick="triggerPhotoUpload()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Add</span></div>'
     }
-  })
-  if(state.sellPhotos.length<MAX_PHOTOS){
-    html+='<div class="photo-slot" onclick="triggerPhotoUpload()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Add</span></div>'
   }
   row.innerHTML=html
 }
@@ -1274,28 +1278,15 @@ function triggerPhotoUpload(){
   document.getElementById('photo-file-input').click()
 }
 
-// ── Description word count (max 1000 words) ──
-var DESC_MAX_WORDS=1000
-var lastDescValue=''
-function countWords(str){
-  var trimmed=(str||'').trim()
-  if(!trimmed)return 0
-  return trimmed.split(/\s+/).length
-}
+// ── Description character count (max 1000 characters) ──
+var DESC_MAX_CHARS=1000
 function updateDescWordCount(){
   var ta=document.getElementById('sell-desc')
   var el=document.getElementById('desc-wordcount')
   if(!ta||!el)return
-  var words=countWords(ta.value)
-  if(words>DESC_MAX_WORDS){
-    ta.value=lastDescValue
-    el.textContent='Maximum word count has been reached.'
-    el.classList.add('desc-wordcount-max')
-    return
-  }
-  lastDescValue=ta.value
-  el.textContent=(DESC_MAX_WORDS-words)+' words left'
-  el.classList.remove('desc-wordcount-max')
+  var chars=ta.value.length
+  el.textContent=DESC_MAX_CHARS-chars
+  el.classList.toggle('desc-wordcount-max',chars>=DESC_MAX_CHARS)
 }
 
 function handlePhotoFile(e){
@@ -1540,37 +1531,96 @@ function clearSellDraft(){
   try{localStorage.removeItem(SELL_DRAFT_KEY)}catch(e){}
 }
 
-async function connectPayoutAccount(){
-  if(!state.user)return
-  saveSellDraft()
-  try{localStorage.setItem('opsdepot_connect_return','sell')}catch(e){}
-  var btn=document.getElementById('sell-next-btn')
-  var prevText=btn.textContent
-  btn.textContent='Connecting…'
-  btn.disabled=true
+/* ── Stripe Connect embedded payout onboarding ──
+   Sellers connect their Stripe payout account without ever leaving
+   The Ops Depot: instead of redirecting out to a Stripe-hosted page,
+   we fetch an Account Session and render Stripe's onboarding form
+   directly inside the app via Connect.js. */
+var stripeConnectInstance=null
+function waitForStripeConnectLib(){
+  return new Promise(function(resolve){
+    if(window.StripeConnect&&window.StripeConnect.init){resolve(true);return}
+    var tries=0
+    var iv=setInterval(function(){
+      tries++
+      if(window.StripeConnect&&window.StripeConnect.init){clearInterval(iv);resolve(true)}
+      else if(tries>100){clearInterval(iv);resolve(false)}
+    },100)
+  })
+}
+async function getStripeConnectInstance(){
+  if(stripeConnectInstance)return stripeConnectInstance
+  var ready=await waitForStripeConnectLib()
+  if(!ready)return null
+  stripeConnectInstance=window.StripeConnect.init({
+    publishableKey:'pk_test_51SHOsLLX2OaObuorOHYcc6dxsx56AfgAVVRudlL8UcGOYmvxxH87DZ1Ep6tB2yFvMFICakFVhPkTmamvo5ACnvwv00ERFqHtS5',
+    fetchClientSecret:async function(){
+      var data=await fetchPayoutAccountSession()
+      return data.client_secret
+    },
+    appearance:{
+      variables:{
+        colorPrimary:'#E8730A',
+        colorBackground:'#111111',
+        colorText:'#ffffff',
+        colorBorder:'#333333',
+        borderRadius:'10px'
+      }
+    }
+  })
+  return stripeConnectInstance
+}
+async function fetchPayoutAccountSession(){
+  if(!state.user)return {}
   try{
     var {data:{session}}=await sb.auth.getSession()
+    if(!session)return {}
     var res=await fetch('https://pxbddzaqhejrgxrudesv.supabase.co/functions/v1/connect-onboarding',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token}
     })
-    var data=await res.json()
-    if(data.url){
-      window.location.href=data.url
-      return
-    }
-    if(data.done){
-      state.profile.stripe_onboarded=true
-      state.profile.payouts_enabled=true
-      updateSellStep()
-    }else{
-      alert(data.error||'Could not start payout setup. Please try again.')
-    }
+    return await res.json()
   }catch(e){
-    alert('Could not start payout setup. Please try again.')
+    return {error:'Could not reach the payout service. Please try again.'}
   }
-  btn.textContent=prevText
-  btn.disabled=false
+}
+async function recheckPayoutStatus(){
+  var data=await fetchPayoutAccountSession()
+  if(data.done){
+    if(state.profile){state.profile.stripe_onboarded=true;state.profile.payouts_enabled=true}
+    return true
+  }
+  return false
+}
+async function mountPayoutOnboarding(containerId,onDone){
+  var container=document.getElementById(containerId)
+  if(!container)return
+  if(container.querySelector('account-onboarding'))return
+  container.innerHTML='<p style="color:#777;font-size:13px;padding:8px 0">Loading payout form…</p>'
+  var data=await fetchPayoutAccountSession()
+  if(data.done){
+    if(state.profile){state.profile.stripe_onboarded=true;state.profile.payouts_enabled=true}
+    container.innerHTML=''
+    if(onDone)onDone()
+    return
+  }
+  if(!data.client_secret){
+    container.innerHTML='<p style="color:#e74c3c;font-size:13px;padding:8px 0">'+(data.error||'Could not load the payout form. Please try again.')+'</p>'
+    return
+  }
+  var instance=await getStripeConnectInstance()
+  if(!instance){
+    container.innerHTML='<p style="color:#e74c3c;font-size:13px;padding:8px 0">Could not load the payout form. Please refresh and try again.</p>'
+    return
+  }
+  container.innerHTML=''
+  var onboarding=instance.create('account-onboarding')
+  onboarding.setOnExit(async function(){
+    var done=await recheckPayoutStatus()
+    if(done)container.innerHTML=''
+    if(onDone)onDone()
+  })
+  container.appendChild(onboarding)
 }
 
 function validateSellStep(step){
@@ -1620,7 +1670,18 @@ async function sellNext(){
   if(validationError){alert(validationError);return}
   if(state.sellStep===3){
     if(!sellerOnboarded()){
-      await connectPayoutAccount()
+      var checkBtn=document.getElementById('sell-next-btn')
+      var checkPrevText=checkBtn.textContent
+      checkBtn.textContent='Checking…'
+      checkBtn.disabled=true
+      var nowDone=await recheckPayoutStatus()
+      checkBtn.textContent=checkPrevText
+      checkBtn.disabled=false
+      if(nowDone){
+        updateSellStep()
+      }else{
+        alert('Please finish connecting your payout account above first.')
+      }
       return
     }
     var btn=document.getElementById('sell-next-btn')
@@ -1684,8 +1745,11 @@ function renderPayoutStatus(){
   if(!box)return
   if(sellerOnboarded()){
     box.innerHTML='<p><strong>Payout account connected.</strong> Payouts land in your bank a couple of days after a sale, held securely by Stripe.</p>'
+    var embed=document.getElementById('sell-payout-embed')
+    if(embed)embed.innerHTML=''
   }else{
-    box.innerHTML='<p>You\'ll connect a payout account with Stripe before this can go live — a short one-time form (bank details, a couple of ID questions). Takes a couple of minutes, and only sellers ever need to do it.</p>'
+    box.innerHTML='<p>Connect a payout account with Stripe before this can go live. It\'s a short one-time form covering bank details and a couple of ID questions, and takes a couple of minutes.</p>'
+    mountPayoutOnboarding('sell-payout-embed',function(){updateSellStep()})
   }
 }
 
@@ -1714,43 +1778,26 @@ async function loadPayoutSettings(){
 function renderPayoutSettingsBox(){
   var box=document.getElementById('payout-settings-box')
   var btn=document.getElementById('payout-settings-btn')
+  var embed=document.getElementById('payout-settings-embed')
   if(sellerOnboarded()){
     box.innerHTML='<p><strong>Payout account connected.</strong> Payouts land in your bank a couple of days after a sale, held securely by Stripe.</p>'
     btn.style.display='none'
+    if(embed)embed.innerHTML=''
   }else{
-    box.innerHTML='<p>Connect a payout account with Stripe to receive money from sales — a short one-time form (bank details, a couple of ID questions). Takes a couple of minutes, and you only need to do it once.</p>'
-    btn.textContent='Connect payout account'
+    box.innerHTML='<p>Connect a payout account with Stripe to receive money from sales. It\'s a short one-time form covering bank details and a couple of ID questions, and takes a couple of minutes.</p>'
+    btn.textContent='I\'ve finished — check status'
     btn.style.display='block'
+    mountPayoutOnboarding('payout-settings-embed',function(){renderPayoutSettingsBox()})
   }
 }
 
-async function openPayoutSettings(){
-  if(!state.user)return
+async function refreshPayoutSettings(){
   var btn=document.getElementById('payout-settings-btn')
   var prevText=btn.textContent
-  btn.textContent='Connecting…'
+  btn.textContent='Checking…'
   btn.disabled=true
-  try{localStorage.setItem('opsdepot_connect_return','payout-settings')}catch(e){}
-  try{
-    var {data:{session}}=await sb.auth.getSession()
-    var res=await fetch('https://pxbddzaqhejrgxrudesv.supabase.co/functions/v1/connect-onboarding',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token}
-    })
-    var data=await res.json()
-    if(data.url){
-      window.location.href=data.url
-      return
-    }
-    if(data.done){
-      if(state.profile){state.profile.stripe_onboarded=true;state.profile.payouts_enabled=true}
-      renderPayoutSettingsBox()
-    }else{
-      alert(data.error||'Could not start payout setup. Please try again.')
-    }
-  }catch(e){
-    alert('Could not start payout setup. Please try again.')
-  }
+  await recheckPayoutStatus()
+  renderPayoutSettingsBox()
   btn.textContent=prevText
   btn.disabled=false
 }
