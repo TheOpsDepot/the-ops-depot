@@ -1561,10 +1561,22 @@ async function getStripeConnectInstance(){
     appearance:{
       variables:{
         colorPrimary:'#E8730A',
-        colorBackground:'#111111',
-        colorText:'#ffffff',
-        colorBorder:'#333333',
-        borderRadius:'10px'
+        colorBackground:'#ffffff',
+        colorText:'#111111',
+        colorSecondaryText:'#555555',
+        colorBorder:'#dddddd',
+        colorDanger:'#791f1f',
+        borderRadius:'12px',
+        buttonBorderRadius:'12px',
+        formBorderRadius:'12px',
+        fontFamily:'-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        fontSizeBase:'16px',
+        formBackgroundColor:'#f8f8f8',
+        inputFieldPaddingX:'16px',
+        inputFieldPaddingY:'16px',
+        buttonPrimaryColorBackground:'#E8730A',
+        buttonPrimaryColorBorder:'#E8730A',
+        buttonPrimaryColorText:'#ffffff'
       }
     }
   })
@@ -1615,6 +1627,10 @@ async function mountPayoutOnboarding(containerId,onDone){
   }
   container.innerHTML=''
   var onboarding=instance.create('account-onboarding')
+  onboarding.setCollectionOptions({
+    fields:'currently_due',
+    requirements:{exclude:['business_profile.url','business_profile.mcc']}
+  })
   onboarding.setOnExit(async function(){
     var done=await recheckPayoutStatus()
     if(done)container.innerHTML=''
